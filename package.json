@@ -1,0 +1,38 @@
+{
+  "name": "nagwa-figures",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "node tests/run.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@fontsource/amiri": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/stix-two-text": "^5.3.0",
+    "@nagwa-limited/mathlive": "^3.3.41",
+    "fflate": "^0.8.3",
+    "jspdf": "^4.2.1",
+    "mathjax-full": "^3.2.2",
+    "opentype.js": "^2.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "svg2pdf.js": "^2.9.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4"
+  }
+}
