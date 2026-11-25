@@ -310,19 +310,19 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
       if (text) {
         const n = p.nudgeByLang?.[lang] ?? p.nudge;
         const size = labelSize(data, own, lang);
-        let at = { x: q.x, y: q.y };
+        let outward = { x: 0, y: -1 };
         if (own) {
           const pl = placeShape(own, data.viewScale, data.canvas);
           const pts = pl.pts;
           if (pts.length || pl.circle) {
             const cen = pts.length ? { x: pts.reduce((a, pt) => a + pt.x, 0) / pts.length, y: pts.reduce((a, pt) => a + pt.y, 0) / pts.length } : pl.circle!.c;
-            const outward = { x: q.x - cen.x, y: q.y - cen.y };
-            const bw = p.circled ? Math.max(slotW(text, size), size * 1.56) : slotW(text, size), bh = p.circled ? size * 1.56 : size * 0.8;
-            const c = placeLabel(q, Math.hypot(outward.x, outward.y) < 1e-6 ? { x: 0, y: -1 } : outward, bw, bh, obs, taken);
-            taken.push({ c, w: bw, h: bh });
-            at = c;
+            outward = { x: q.x - cen.x, y: q.y - cen.y };
           }
         }
+        // same placement as the drawing: shape points go outward from the figure, free points above themselves
+        const bw = p.circled ? Math.max(slotW(text, size), size * 1.56) : slotW(text, size), bh = p.circled ? size * 1.56 : size * 0.8;
+        const at = placeLabel(q, Math.hypot(outward.x, outward.y) < 1e-6 ? { x: 0, y: -1 } : outward, bw, bh, obs, taken);
+        taken.push({ c: at, w: bw, h: bh });
         const fin = { x: at.x + (n?.x ?? 0), y: at.y + (n?.y ?? 0) };
         addGlyph(add, fin, text, size, lang, italic);
         if (p.circled) { const rr = size * 0.78 + data.style.stroke; add(fin.x - rr, fin.y - rr); add(fin.x + rr, fin.y + rr); }
