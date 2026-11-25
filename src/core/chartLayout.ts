@@ -120,7 +120,7 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   let yLabelW = 0;
   if (yAxis) for (const v of yTicks) {
     const a = P(L, mapY(v));
-    out.ticks.push({ a: pt(a), b: pt(add(a, ex, -5 * ui)) });
+    if (c.tickMarks) out.ticks.push({ a: pt(add(a, ex, 3 * ui)), b: pt(add(a, ex, -6 * ui)) });
     if (!c.showNumbers || (oneZero && v === 0) || (c.yLabelMin !== undefined && v < c.yLabelMin - 1e-9) || (c.yLabelMax !== undefined && v > c.yLabelMax + 1e-9)) continue;
     const t = numText(v, lang), w = estW(t, tickSize);
     yLabelW = Math.max(yLabelW, w);
@@ -128,7 +128,7 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   }
   if (!bar) for (const v of xTicks) {
     const a = P(mapX(v), B);
-    out.ticks.push({ a: pt(a), b: pt(add(a, ey, -5 * ui)) });
+    if (c.tickMarks) out.ticks.push({ a: pt(add(a, ey, 3 * ui)), b: pt(add(a, ey, -6 * ui)) });
     if (!c.showNumbers || (oneZero && v === 0) || (c.xLabelMax !== undefined && v > c.xLabelMax + 1e-9)) continue;
     text(`ct:x:${v}`, { x: a.x, y: a.y + tickSize * 0.85 + 8 * ui }, numText(v, lang), tickSize);
   }

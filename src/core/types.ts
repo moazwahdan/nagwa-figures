@@ -280,6 +280,8 @@ export interface ChartSettings {
   showNumbers: boolean;
   /** Black frame around the plot area. */
   frame: boolean;
+  /** Small tick marks that cross the axes at every step. */
+  tickMarks: boolean;
   /** Hide x tick numbers beyond this value (the grid keeps going). Omitted = all numbers. */
   xLabelMax?: number;
   /** Hide y tick numbers below / above these values (the ticks and grid stay). */
