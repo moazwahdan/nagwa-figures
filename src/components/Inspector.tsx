@@ -5,7 +5,7 @@ import { ALEF_LOOP, VERTEX_AR_LETTERS, formatNumber, localizeName, shownArabicNa
 import '../mathpad.css';
 import { ALEF_GLYPH, FONT_ALEF, FONT_AR_MATH } from '../core/fonts';
 import { geometryOf, resampleFreePath } from '../core/scene';
-import { buildWorld, ownerOfDef, ownerOfRef, refName, spatialDistance, vlen, vsub } from '../core/world';
+import { buildWorld, ownerOfDef, ownerOfRef, refEq, refName, spatialDistance, vlen, vsub } from '../core/world';
 import { DEF_BY_ID, sideLengths } from '../core/shapes2d';
 import { useStore } from '../core/store';
 import { solidSettings } from '../core/shapes3d';
@@ -155,6 +155,17 @@ function ConstructionList() {
                   {l.curve==='spline'&&<span className="muted small">curve</span>}
                   <button className="icon-btn danger" onClick={() => removeLine(l.id)} aria-label="Delete line">✕</button>
                 </div>
+                {(()=>{
+                  const w=buildWorld(data),A=w.ref(l.a),B=w.ref(l.b),bp='p' in l.b?points.find(p=>p.id===(l.b as {p:string}).p):undefined;
+                  if(!A||!B||!bp||l.curve||!((bp.def.t==='offset'&&refEq(bp.def.from,l.a))||bp.def.t==='world'))return null;
+                  const len=Math.hypot(B.x-A.x,B.y-A.y),ang=Math.atan2(B.y-A.y,B.x-A.x)*180/Math.PI;
+                  const move=(L:number,deg:number)=>{
+                    if(!(L>0))return;
+                    if(bp.def.t==='offset')patchPoint(bp.id,{def:{...bp.def,dist:L,angle:deg}});
+                    else{const r=deg*Math.PI/180;patchPoint(bp.id,{def:{t:'world',x:A.x+Math.cos(r)*L,y:A.y+Math.sin(r)*L}});}
+                  };
+                  return <div className="fields"><NumField label="Length" value={Math.round(len*100)/100} min={0.05} step={0.1} onCommit={(v)=>move(v,ang)}/><NumField label="Angle °" value={Math.round(ang*10)/10} min={-360} max={360} onCommit={(v)=>move(len,v)}/></div>;
+                })()}
                 <div className="con-tools">
                   <TextField value={l.label.text} placeholder="hidden" onCommit={(t) => patchLine(l.id, { label: { ...l.label, text: t } })} />
                   <label className="check tiny"><input type="checkbox" checked={l.label.unit} onChange={(e) => patchLine(l.id, { label: { ...l.label, unit: e.target.checked } })} />cm</label>
