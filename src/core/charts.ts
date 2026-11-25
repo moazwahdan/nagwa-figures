@@ -22,7 +22,7 @@ export function defaultChart(kind: ChartKind): ChartSettings {
       points: [0, 1, 2, 3, 4, 5].map((x) => ({ x, y: x * 10, marker: x > 0 })) };
   }
   const counts = [2, 1, 6, 5, 4, 1, 1];
-  return { ...base, kind, title: T('Scores Achieved by Classes in School', 'الدرجات التي حصلت عليها الفصول'), arrows: true, color: '#333333',
+  return { ...base, kind, axisPad: 0.65, title: T('Scores Achieved by Classes in School', 'الدرجات التي حصلت عليها الفصول'), arrows: true, color: '#333333',
     points: counts.map((y, x) => ({ x, y })) };
 }
 
@@ -61,8 +61,9 @@ export function validateChart(c: unknown): asserts c is ChartSettings {
   for (const k of ['xMin', 'xMax', 'xStep', 'yMin', 'yMax', 'yStep', 'barWidth'] as const) if (!finite(s![k])) bad();
   if (s!.xMax <= s!.xMin || s!.yMax <= s!.yMin || s!.xStep <= 0 || s!.yStep <= 0 || s!.barWidth <= 0 || s!.barWidth > 1) bad();
   if ((s!.xMax - s!.xMin) / s!.xStep > 200 || (s!.yMax - s!.yMin) / s!.yStep > 200) throw new Error('Too many ticks: increase the step.');
-  if (!['none', 'horizontal', 'full'].includes(s!.grid) || !['center', 'edge'].includes(s!.gridAt) || !isHexColor(s!.color)) bad();
-  if (s!.xLabelMax !== undefined && !finite(s!.xLabelMax)) bad();
+  if (!['none', 'horizontal', 'full'].includes(s!.grid) || !['center', 'edge', 'cell'].includes(s!.gridAt) || !isHexColor(s!.color)) bad();
+  for (const k of ['xLabelMax', 'yLabelMin', 'yLabelMax', 'axisPad'] as const) if (s![k] !== undefined && !finite(s![k])) bad();
+  if (s!.axisPad !== undefined && (s!.axisPad < 0 || s!.axisPad > 5)) bad();
   for (const k of ['arrows', 'showAxisNames', 'showNumbers', 'frame', 'lineConnect', 'markers'] as const) if (typeof s![k] !== 'boolean') bad();
   for (const p of s!.points as ChartPoint[]) {
     if (!finite(p.x) || !finite(p.y)) bad();

@@ -272,7 +272,7 @@ export interface ChartSettings {
   yMin: number; yMax: number; yStep: number;
   grid: 'none' | 'horizontal' | 'full';
   /** Bar charts: vertical grid lines through the bar centres or between the slots. */
-  gridAt: 'center' | 'edge';
+  gridAt: 'center' | 'edge' | 'cell';
   /** Axis arrow heads past the plot area (line graph, dot plot). */
   arrows: boolean;
   /** Letters x / y (س / ص) at the arrow tips. */
@@ -282,6 +282,11 @@ export interface ChartSettings {
   frame: boolean;
   /** Hide x tick numbers beyond this value (the grid keeps going). Omitted = all numbers. */
   xLabelMax?: number;
+  /** Hide y tick numbers below / above these values (the ticks and grid stay). */
+  yLabelMin?: number;
+  yLabelMax?: number;
+  /** Dot plot: how far (in x units) the number line runs past the first and last tick. */
+  axisPad?: number;
   /** Bar width as a fraction of its slot. */
   barWidth: number;
   /** Default colour of bars / line / dots. */

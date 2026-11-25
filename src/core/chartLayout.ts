@@ -39,7 +39,8 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   const mapY = (v: number) => B + ((v - c.yMin) / (c.yMax - c.yMin)) * H;
   const mapX = (v: number) => L + ((v - c.xMin) / (c.xMax - c.xMin)) * W;
   const slot = W / Math.max(n, 1);
-  const cx = (i: number) => L + (i + 0.5) * slot;
+  const cell = c.kind === 'bar' && c.gridAt === 'cell', u = W / (2 * Math.max(n, 1) + 1);
+  const cx = (i: number) => (cell ? L + (2 * i + 1.5) * u : L + (i + 0.5) * slot);
   const o = P(0, 0), ex = norm({ x: P(1, 0).x - o.x, y: P(1, 0).y - o.y }), ey = norm({ x: P(0, 1).x - o.x, y: P(0, 1).y - o.y });
   const add = (a: Vec, d: Vec, k = 1): Vec => ({ x: a.x + d.x * k, y: a.y + d.y * k });
   const arrowLen = stroke * ARROW_TO_STROKE, ext = arrowLen + stroke * 3;
@@ -68,7 +69,8 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   if (c.grid !== 'none' && !dot) {
     for (const v of yTicks) if (v > c.yMin + 1e-9) out.grid.push({ a: pt(P(L, mapY(v))), b: pt(P(R, mapY(v))) });
     if (c.grid === 'full') {
-      if (bar) for (let i = c.gridAt === 'edge' ? 1 : 0; i < (c.gridAt === 'edge' ? n + 1 : n); i++) { const gx = c.gridAt === 'edge' ? L + i * slot : cx(i); out.grid.push({ a: pt(P(gx, B)), b: pt(P(gx, Tp)) }); }
+      if (cell) for (let k = 1; k <= 2 * n + 1; k++) out.grid.push({ a: pt(P(L + k * u, B)), b: pt(P(L + k * u, Tp)) });
+      else if (bar) for (let i = c.gridAt === 'edge' ? 1 : 0; i < (c.gridAt === 'edge' ? n + 1 : n); i++) { const gx = c.gridAt === 'edge' ? L + i * slot : cx(i); out.grid.push({ a: pt(P(gx, B)), b: pt(P(gx, Tp)) }); }
       else for (const v of xTicks) if (v > c.xMin + 1e-9) out.grid.push({ a: pt(P(mapX(v), B)), b: pt(P(mapX(v), Tp)) });
     }
   }
@@ -76,7 +78,7 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   /* Data marks. */
   if (bar) {
     c.points.forEach((p, i) => {
-      const half = (slot * c.barWidth) / 2, top = mapY(Math.min(Math.max(p.y, c.yMin), c.yMax));
+      const half = cell ? u / 2 : (slot * c.barWidth) / 2, top = mapY(Math.min(Math.max(p.y, c.yMin), c.yMax));
       out.bars.push({ fill: p.color ?? c.color, pts: [P(cx(i) - half, B), P(cx(i) + half, B), P(cx(i) + half, top), P(cx(i) - half, top)].map(pt) });
     });
   } else if (c.kind === 'line') {
@@ -95,7 +97,8 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   if (c.kind === 'line') for (const d of out.dots) { pt({ x: d.c.x - d.r, y: d.c.y - d.r }); pt({ x: d.c.x + d.r, y: d.c.y + d.r }); }
 
   /* Axes with optional arrow heads. */
-  const xa = P(L, B), xb = P(R, B), ya = P(L, B), yb = P(L, Tp);
+  const padL = dot ? ((c.axisPad ?? 0) * W) / (c.xMax - c.xMin) : 0;
+  const xa = P(L - padL, B), xb = P(R + padL, B), ya = P(L, B), yb = P(L, Tp);
   const axisTo = (a: Vec, b: Vec, u: Vec, arrowEnd: boolean, arrowStart = false) => {
     let p = a, q = b;
     if (arrowEnd) { const tip = add(b, u, ext); out.heads.push({ tip: pt(tip), dir: u }); q = add(tip, u, -arrowLen); }
@@ -118,7 +121,7 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   if (yAxis) for (const v of yTicks) {
     const a = P(L, mapY(v));
     out.ticks.push({ a: pt(a), b: pt(add(a, ex, -5 * ui)) });
-    if (!c.showNumbers || (oneZero && v === 0)) continue;
+    if (!c.showNumbers || (oneZero && v === 0) || (c.yLabelMin !== undefined && v < c.yLabelMin - 1e-9) || (c.yLabelMax !== undefined && v > c.yLabelMax + 1e-9)) continue;
     const t = numText(v, lang), w = estW(t, tickSize);
     yLabelW = Math.max(yLabelW, w);
     text(`ct:y:${v}`, { x: a.x - (w / 2 + 8 * ui), y: a.y }, t, tickSize);
