@@ -265,7 +265,11 @@ export interface AxesSettings {
   points:AxisPoint[];lines:AxisLine[];planes:AxisPlane[];
 }
 /** y = f(x) curve on 2D axes. `from`/`to` are optional domain limits (omitted = whole axis range). */
-export interface AxisFunction {id:string;expr:string;from?:number;to?:number;dashed:boolean;arrows:boolean;showLabel:boolean;label:string}
+export interface AxisFunction {id:string;expr:string;from?:number;to?:number;dashed:boolean;arrows:boolean;showLabel:boolean;label:string;
+  /** Hex colour of the curve. Missing = black. */
+  color?:string;
+  /** Region between the curve and the x axis over [from, to] (tick values), filled with `color`. */
+  area?:{from:number;to:number;color:string}}
 export interface AxesTool {kind:'point'|'line'|'vector'|'plane';shape:string;picks:AxisCoord[];plane:ConstructionPlane;level:number;showCoordinates:boolean;coordinatePosition:'beside'|'below'}
 
 export type AxisEquation = {id:string;kind:'line'|'vector';origin:AxisCoord;direction:AxisCoord;dashed:boolean} | {id:string;kind:'plane';normal:AxisCoord;constant:number};

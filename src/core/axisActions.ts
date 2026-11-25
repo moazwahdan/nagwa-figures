@@ -30,12 +30,14 @@ export function pickAxisCoordinate(at:AxisCoord){
 }
 export function editAxisPoint(s:ShapeInstance,id:string,patch:Partial<AxisPoint>){patchAxes(s.id,{points:s.axes!.points.map(p=>p.id===id?{...p,...patch}:p)});}
 /* ---------- y = f(x) curves (2D axes) ---------- */
-export type FunctionInput={expr:string;from?:number;to?:number;dashed?:boolean;arrows?:boolean;showLabel?:boolean;label?:string};
+export type FunctionInput={expr:string;from?:number;to?:number;dashed?:boolean;arrows?:boolean;showLabel?:boolean;label?:string;color?:string;area?:{from:number;to:number;color:string}};
 function nextFunctionLabel(a:AxesSettings){const used=new Set((a.functions??[]).map(f=>f.label));for(const n of 'fghkpqrstuvw'){const label=`${n}(x)`;if(!used.has(label))return label;}return `f${(a.functions??[]).length+1}(x)`;}
 function buildFunction(s:ShapeInstance,id:string,input:FunctionInput,fallbackLabel:string):AxisFunction{
   if(s.axes!.dimension!==2)throw new Error('Function curves are available only on 2D axes.');
   const expr=input.expr.trim();compileFunction(expr);
   const item:AxisFunction={id,expr,dashed:input.dashed??false,arrows:input.arrows??false,showLabel:input.showLabel??false,label:(input.label??'').trim()||fallbackLabel};
+  if(input.color!==undefined)item.color=input.color;
+  if(input.area!==undefined){if(!(input.area.from<input.area.to))throw new Error('The shaded area must start before it ends.');item.area=input.area;}
   if(input.from!==undefined)item.from=input.from;if(input.to!==undefined)item.to=input.to;
   if(item.from!==undefined&&item.to!==undefined&&!(item.from<item.to))throw new Error('The domain start must be smaller than its end.');
   if(!curveGeometry(item,s.params,s.axes).length)throw new Error('This function has no visible part inside the current axis ranges and domain. Expand the ranges or change the expression.');

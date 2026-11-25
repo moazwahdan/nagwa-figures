@@ -45,7 +45,11 @@ export function AxesSvg({data,shape:s,lang,interactive,lockAll,tool}:{data:Scene
   const curves:ReactElement[]=[];
   for(const f of a.functions??[]){
     const pieces=curveGeometry(f,s.params,a);
-    pieces.forEach((c,i)=>{const d=c.pts.map((p,j)=>{const q=P({x:p.x,y:p.y,z:0});return (j?'L':'M')+q.x.toFixed(2)+','+q.y.toFixed(2);}).join('');curves.push(<path key={f.id+':'+i} data-axis-function={f.id} d={d} fill="none" stroke="#000" strokeWidth={stroke} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={f.dashed?'9 6':undefined} markerStart={f.arrows&&c.startClipped?`url(#${marker})`:undefined} markerEnd={f.arrows&&c.endClipped?`url(#${marker})`:undefined}/>);});
+    if(f.area){const tk=a.axisTicks?.x,sp=tk?.spacing&&tk.spacing>0?tk.spacing:a.step>0?a.step:1,stp=tk?.steps&&tk.steps>0?tk.steps:(a.numberStep&&a.numberStep>0?a.numberStep:sp),ux=(a.tickUnit??'').trim().toLowerCase().replace(/^\\/,'')==='pi'&&(a.tickUnitOn===undefined||a.tickUnitOn.includes('x'))?Math.PI:1,g=(v:number)=>v*sp/stp*ux;
+      const lo=g(f.area.from),hi=g(f.area.to);
+      pieces.forEach((c,i)=>{const pts=c.pts.filter(p=>p.x>=lo-1e-9&&p.x<=hi+1e-9);if(pts.length<2)return;const q=pts.map(p=>P({x:p.x,y:p.y,z:0})),b0=P({x:pts[0].x,y:0,z:0}),b1=P({x:pts[pts.length-1].x,y:0,z:0});
+        curves.push(<path key={f.id+':area'+i} data-axis-area={f.id} d={`M${b0.x.toFixed(2)},${b0.y.toFixed(2)}`+q.map(p=>`L${p.x.toFixed(2)},${p.y.toFixed(2)}`).join('')+`L${b1.x.toFixed(2)},${b1.y.toFixed(2)}Z`} fill={f.area!.color} stroke="none"/>);});}
+    pieces.forEach((c,i)=>{const d=c.pts.map((p,j)=>{const q=P({x:p.x,y:p.y,z:0});return (j?'L':'M')+q.x.toFixed(2)+','+q.y.toFixed(2);}).join('');curves.push(<path key={f.id+':'+i} data-axis-function={f.id} d={d} fill="none" stroke={f.color??'#000'} strokeWidth={stroke} strokeLinejoin="round" strokeLinecap="round" strokeDasharray={f.dashed?'9 6':undefined} markerStart={f.arrows&&c.startClipped?`url(#${marker})`:undefined} markerEnd={f.arrows&&c.endClipped?`url(#${marker})`:undefined}/>);});
     if(f.showLabel&&pieces.length){const target=s.params.xMin+(s.params.xMax-s.params.xMin)*.88;let best=pieces[0].pts[0];for(const c of pieces)for(const p of c.pts)if(Math.abs(p.x-target)<Math.abs(best.x-target))best=p;const q=P({x:best.x,y:best.y,z:0});texts.push(txt('axis-fn:'+f.id,{x:q.x+fs*.7,y:q.y-fs*.7},localizeFunctionLabel(f.label,lang,data.style),fs*.85,'fn'));}
   }
   if(a.showZero??a.numbers)texts.push(txt('axis:zero',{x:origin.x-fs*.45,y:origin.y+fs*.55},number(0),fs*.64,'tick'));

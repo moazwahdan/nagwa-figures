@@ -12,7 +12,7 @@ export const PALETTE: PaletteColor[] = [
   { hex: '#8FC3EA', name: 'Chart blue' }, { hex: '#61BF6E', name: 'Chart green' },
   { hex: '#ABEBC6', name: 'Chart mint' }, { hex: '#B1947D', name: 'Chart brown' },
   { hex: '#EC7063', name: 'Chart red' }, { hex: '#89898A', name: 'Chart grey' },
-  { hex: '#A5A5A6', name: 'Grid grey' }, { hex: '#333333', name: 'Ink' },
+  { hex: '#F9DDA4', name: 'Area peach' }, { hex: '#A5A5A6', name: 'Grid grey' }, { hex: '#333333', name: 'Ink' },
 ];
 export const GRID_COLOR = '#A5A5A6';
 export const INK_COLOR = '#333333';

@@ -314,6 +314,8 @@ export function validateFunctions(s: Pick<ShapeInstance, 'axes'>) {
     ids.add(f.id);
     if (typeof f.expr !== 'string' || typeof f.dashed !== 'boolean' || typeof f.arrows !== 'boolean' || typeof f.showLabel !== 'boolean' || typeof f.label !== 'string' || f.label.length > 24) throw new Error('Invalid function settings.');
     compileFunction(f.expr);
+    if (f.color !== undefined && !/^#[0-9a-fA-F]{6}$/.test(f.color)) throw new Error('Invalid curve colour.');
+    if (f.area !== undefined && (!Number.isFinite(f.area.from) || !Number.isFinite(f.area.to) || !(f.area.from < f.area.to) || !/^#[0-9a-fA-F]{6}$/.test(f.area.color))) throw new Error('Invalid shaded area.');
     for (const k of ['from', 'to'] as const) if (f[k] !== undefined && (typeof f[k] !== 'number' || !Number.isFinite(f[k]) || Math.abs(f[k]!) > 1e6)) throw new Error('Invalid function domain.');
     if (f.from !== undefined && f.to !== undefined && !(f.from < f.to)) throw new Error('The domain start must be smaller than its end.');
   }
