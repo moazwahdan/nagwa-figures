@@ -1,4 +1,5 @@
 import { AXES_DEFS } from './axes';
+import { CHART_DEFS } from './charts';
 import { MECHANICS_DEFS } from './shapesMechanics';
 import { SOLID_DEFS, type SolidGeometry } from './shapes3d';
 import type { SolidSettings, Vec } from './types';
@@ -39,7 +40,7 @@ export interface Geometry {
 export interface ShapeDef {
   id: string;
   kind: ShapeKind;
-  group: 'Triangles' | 'Quadrilaterals' | 'Polygons & circle' | '3D solids' | 'Axes' | 'Mechanics' | 'Texts';
+  group: 'Triangles' | 'Quadrilaterals' | 'Polygons & circle' | '3D solids' | 'Axes' | 'Charts' | 'Mechanics' | 'Texts';
   hidden?: boolean;
   label: string;
   tip: string;
@@ -304,6 +305,7 @@ export const SHAPE_DEFS: ShapeDef[] = [
 SHAPE_DEFS.push(
   ...SOLID_DEFS,
   ...AXES_DEFS,
+  ...CHART_DEFS,
   ...MECHANICS_DEFS,
   {
     id: 'free-poly',

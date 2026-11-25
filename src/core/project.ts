@@ -1,4 +1,5 @@
 import { validateAxes } from './axes';
+import { validateChart } from './charts';
 import { useStore } from './store';
 import { geometryOf } from './scene';
 import { SHAPE_DEFS } from './shapes2d';
@@ -56,6 +57,8 @@ export function parseProjectText(text: string): ProjectDocument {
     if(s.hideSplitRightMarks!==undefined&&typeof s.hideSplitRightMarks!=='boolean')fail();
     if(def?.kind==='axes')validateAxes(s);
     else if(s.axes!==undefined)fail();
+    if(def?.kind==='chart')validateChart(s.chart);
+    else if(s.chart!==undefined)fail();
     if(def?.kind==='caption'){
       const c=s.caption;
       if(!c||typeof c.ar!=='string'||typeof c.en!=='string'||c.ar.length>4000||c.en.length>4000)fail();

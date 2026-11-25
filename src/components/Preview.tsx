@@ -236,7 +236,7 @@ export function Preview({ lang, zoom = 1 }: { lang: Lang; zoom?: number }) {
     // free click: attach to the selected shape (or the first one)
     const hitShape=(e.target as Element).closest('[data-shape-id]')?.getAttribute('data-shape-id');
     const s = st.shapes.find((x) => x.id === hitShape) ?? st.shapes.find((x) => x.id === st.selectedId) ?? st.shapes[0];
-    if (!s || s.axes) {
+    if (!s || s.axes || s.chart) {
       return { kind: 'world', x: u.x, y: u.y };
     }
     const l = fromUnits(s, fromPx(data, p));

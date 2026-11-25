@@ -1,4 +1,5 @@
 import { validateAxes } from './axes';
+import { validateChart } from './charts';
 import { create } from 'zustand';
 import { appendScene } from './sceneClone';
 import { localAnchors } from './anchors';
@@ -245,7 +246,8 @@ export const useStore = create<Store>((set, get) => {
       const d = data();
       const fresh = placeOnTop(d.shapes, newShape(defId));
       if (!d.shapes.length) {
-        const next = fitScene({ ...d, shapes: [fresh] });
+        const chartCanvas = fresh.chart ? { bar: { w: 440, h: 360 }, line: { w: 420, h: 580 }, dot: { w: 540, h: 250 } }[fresh.chart.kind] : undefined;
+        const next = fitScene({ ...d, ...(chartCanvas ? { canvas: chartCanvas } : {}), shapes: [fresh] });
         set({ ...next, selectedId: fresh.id, tool: null, axesTool:null, picks: [], langView: null });
       } else set({ shapes: [...d.shapes, fresh], selectedId: fresh.id, tool: null, axesTool:null, picks: [], langView: null });
     },
@@ -285,7 +287,7 @@ export const useStore = create<Store>((set, get) => {
       set({ shapes });
     },
     patchShape: (id, patch, opts) => {
-      const candidate=get().shapes.find(s=>s.id===id);if(candidate?.axes)validateAxes({...candidate,...patch});
+      const candidate=get().shapes.find(s=>s.id===id);if(candidate?.axes)validateAxes({...candidate,...patch});if(candidate?.chart&&(patch.chart||patch.params))validateChart(patch.chart??candidate.chart);
       push();
       const d = data();
       const old = d.shapes.find(s => s.id === id);
@@ -444,7 +446,7 @@ export const useStore = create<Store>((set, get) => {
       }
       const owners = (target: Target): (string | undefined)[] => target.kind === 'point' ? [ownerOfRef(st, target.ref)] : target.kind === 'line' ? [ownerOfRef(st, target.a), ownerOfRef(st, target.b)] : target.kind === 'world' ? [] : target.kind === 'circles' ? [target.shape, target.other] : [target.shape];
       const allOwners = [...st.picks, t].flatMap(owners).filter((id): id is string => !!id);
-      if(allOwners.some(id=>st.shapes.find(s=>s.id===id)?.axes)){get().notify('error','Use the axes tools in the right panel.');return;}
+      if(allOwners.some(id=>st.shapes.find(s=>s.id===id)?.axes||st.shapes.find(s=>s.id===id)?.chart)){get().notify('error','Use the chart panel on the right.');return;}
       const hasSolid = allOwners.some(id => st.shapes.find(s => s.id === id)?.solid);
       if (hasSolid && new Set(allOwners).size !== 1) {
         set({ picks: [], notice: notice('error', 'Choose points and edges on the same solid for this construction.') });

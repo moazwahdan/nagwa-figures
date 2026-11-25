@@ -13,7 +13,7 @@ import type { AnchorKey, ShapeInstance } from '../core/types';
 import { ShapeIcon } from './ShapeIcon';
 import { Tooltip } from './Tooltip';
 
-const SHAPE_FAMILIES = ['Triangles', 'Quadrilaterals', 'Polygons & circle', '3D solids', 'Axes', 'Lines', 'Mechanics'] as const;
+const SHAPE_FAMILIES = ['Triangles', 'Quadrilaterals', 'Polygons & circle', '3D solids', 'Axes', 'Charts', 'Lines', 'Mechanics'] as const;
 
 function Section({ title, children, open: o = true, count, tip }: { title: string; children: React.ReactNode; open?: boolean; count?: number; tip?: string }) {
   const [open, setOpen] = useState(o);
@@ -173,7 +173,7 @@ function toolsFor(shape: ShapeInstance): string[] {
   const def = SHAPE_DEFS.find((d) => d.id === shape.defId);
   const points = ['side-point', 'free-point', 'rel-point'];
   const lines = ['segment', 'arc', 'perp', 'perp-at', 'bisector', 'parallel'];
-  if (!def || def.kind === 'axes' || def.kind === 'caption') return [];
+  if (!def || def.kind === 'axes' || def.kind === 'chart' || def.kind === 'caption') return [];
   const mechExtras=['force-line',...(['mech-ground'].includes(shape.defId)?['attach-wall','attach-particle','attach-block']:[]),...(['mech-rod'].includes(shape.defId)?['attach-hinge','attach-particle','attach-block']:[]),...(['mech-wedge'].includes(shape.defId)?['attach-particle','attach-block']:[])];
   if(def.kind==='mechanics'){
     const geo=geometryOf(shape);

@@ -974,7 +974,7 @@ function circleCutAngles(data: SceneData, shape: ShapeInstance): number[] {
     if (a && b) consider(a, b);
   }
   for (const s of data.shapes) {
-    if (s.id === shape.id || s.axes || s.caption) continue;
+    if (s.id === shape.id || (s.axes||s.chart) || s.caption) continue;
     const g = geometryOf(s);
     if (g.circle && g.points.length < 2) continue;
     const pts = g.points.map((p) => toUnits(s, p));
@@ -1031,7 +1031,7 @@ function onSeg(p: Vec, a: Vec, b: Vec, tol: number): number | null {
 function enclosingSide(b: Builder, a: Ref, bRef: Ref): { a: Ref; b: Ref } {
   const A = b.pos(a), B = b.pos(bRef), tol = b.tol * 12;
   for (const s of b.data.shapes) {
-    if (s.axes) continue;
+    if ((s.axes||s.chart)) continue;
     const geo = geometryOf(s);
     if (geo.solid) {
       for (const e of geo.solid.edges) {

@@ -24,7 +24,7 @@ function rim(c: Vec, r: number): Vec[] {
 
 /** Vertices, side midpoints, centres, and 45° rim points on every drawable body. */
 export function forceSnapLocals(s: ShapeInstance): Vec[] {
-  if (s.axes || s.caption) return [];
+  if ((s.axes||s.chart) || s.caption) return [];
   const g = geometryOf(s);
   const out: Vec[] = [];
   if (g.circle) {

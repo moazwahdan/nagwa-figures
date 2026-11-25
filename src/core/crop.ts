@@ -2,6 +2,7 @@ import { inferFrame } from './imageFrames';
 import { FONT_AR, FONT_EN } from './fonts';
 import { dataForLang, geometryOf, placeShape, toUnits } from './scene';
 import { axisNumberSize, axisTick, axisTickMarks, axisRayHidden, axisUsesTickUnit, clipAxisLine, equationGeometry, planeOrder, projectAxes, ranges } from './axes';
+import { chartLayout } from './chartLayout';
 import { formatNumber, localizeFunctionLabel, localizeName as localizeVertexName, renderSymbol, toArabicDigits } from './labels';
 import { curveGeometry } from './functions';
 import { ARROW_TO_STROKE } from './paper';
@@ -113,6 +114,17 @@ function addGlyph(add: (x: number, y: number) => void, at: Vec, text: string, si
   add(at.x + g.x + g.w, at.y + g.y + g.h);
 }
 
+/** Ink of a chart: the same layout the renderer draws, plus every text (the rotated y title swaps its box). */
+function addChartInk(add: (x: number, y: number) => void, data: SceneData, s: ShapeInstance, lang: Lang, italic: boolean) {
+  const lay = chartLayout(data, s, lang);
+  for (const p of lay.pts) add(p.x, p.y);
+  for (const t of lay.texts) {
+    if (!t.rot) { addGlyph(add, t.pos, t.text, t.size, lang, !!t.italic && italic); continue; }
+    const g = glyphBox(t.text, t.size, lang, false);
+    for (const [dx, dy] of [[g.x, g.y], [g.x + g.w, g.y], [g.x, g.y + g.h], [g.x + g.w, g.y + g.h]]) add(t.pos.x + dy, t.pos.y - dx);
+  }
+}
+
 /** Every ink point of a coordinate-axes shape: arrow tips, axis names (س ص ع / x y z), tick marks and numbers, function labels, point names. Mirrors AxesSvg. */
 function addAxesInk(add: (x: number, y: number) => void, data: SceneData, s: ShapeInstance, lang: Lang, italic: boolean) {
   const a = s.axes!;
@@ -197,7 +209,7 @@ function addAxesInk(add: (x: number, y: number) => void, data: SceneData, s: Sha
 function shapeObstacles(data: SceneData): Obstacles {
   const obs: Obstacles = { segs: [], circles: [] };
   for (const s of data.shapes) {
-    if (s.axes || s.caption) continue;
+    if ((s.axes||s.chart) || s.caption) continue;
     const pl = placeShape(s, data.viewScale, data.canvas);
     if (pl.circle) obs.circles.push({ c: pl.circle.c, r: pl.circle.r });
     const n = pl.pts.length;
@@ -236,6 +248,7 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
     const size = labelSize(data, s, lang);
     for (const p of [...pl.pts, ...(pl.boundsPts ?? [])]) add(p.x, p.y);
     if (s.axes) addAxesInk(add, data, s, lang, italic);
+    if (s.chart) addChartInk(add, data, s, lang, italic);
     if (pl.circle) {
       add(pl.circle.c.x - pl.circle.r, pl.circle.c.y - pl.circle.r);
       add(pl.circle.c.x + pl.circle.r, pl.circle.c.y + pl.circle.r);
@@ -412,7 +425,7 @@ export function cropScene(data: SceneData, lang: Lang = 'en'): { scene: SceneDat
 
 /** After the unit-based fit, resize/recentre so the *ink* (arrow tips, axis letters, numbers, labels) fills the image, not the bare axis range. Only for scenes with axes. */
 setInkFit((data: SceneData): SceneData => {
-  if (!data.shapes.some((s) => s.axes)) return data;
+  if (!data.shapes.some((s) => s.axes || s.chart)) return data;
   let d = data;
   for (let i = 0; i < 10; i++) {
     const box = unionInkBounds(d);

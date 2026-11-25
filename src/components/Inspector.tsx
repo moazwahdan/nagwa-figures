@@ -1,3 +1,4 @@
+import { ChartInspector } from './ChartInspector';
 import { AxesInspector } from './AxesInspector';
 import { useEffect, useState } from 'react';
 import { ALEF_LOOP, VERTEX_AR_LETTERS, formatNumber, localizeName, shownArabicName, vertexArabicPlain } from '../core/labels';
@@ -227,8 +228,9 @@ export function Inspector() {
       </div>
       <ConstructionList />
       {sel?.axes && <AxesInspector key={sel.id} s={sel} />}
+      {sel?.chart && <ChartInspector key={sel.id} s={sel} />}
       {sel?.caption&&<div className="panel"><div className="insp-title">Text<span className="actions"><Tooltip tip="Duplicate" side="bottom"><button className="icon-btn" onClick={()=>duplicateShape(sel.id)}>⧉</button></Tooltip><Tooltip tip="Delete (Del)" side="bottom"><button className="icon-btn danger" onClick={()=>removeShape(sel.id)}>✕</button></Tooltip></span></div><Tooltip tip="Arabic and English are edited separately in the bar above the drawing. Math goes in $...$."><button type="button" className="btn wide" onClick={()=>useStore.getState().setTextComposer(sel.id)}>Edit Arabic / English</button></Tooltip><TransformFields s={sel} patch={(p,fit)=>patchShape(sel.id,p,{fit})}/></div>}
-      {sel && !sel.axes && !sel.caption && <ShapePanel s={sel} style={style} patch={(p, fit) => patchShape(sel.id, p, { fit })} onDelete={() => removeShape(sel.id)} onDup={() => duplicateShape(sel.id)} />}
+      {sel && !sel.axes && !sel.chart && !sel.caption && <ShapePanel s={sel} style={style} patch={(p, fit) => patchShape(sel.id, p, { fit })} onDelete={() => removeShape(sel.id)} onDup={() => duplicateShape(sel.id)} />}
     </aside>
   );
 }

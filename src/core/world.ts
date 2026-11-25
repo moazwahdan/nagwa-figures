@@ -70,7 +70,7 @@ export function boundaryHits(data: SceneData, shapeId: string, o: Vec, d: Vec, e
 export function resolveDef(world: World, def: PointDef): Vec | null {
   const { data, ref, size } = world;
   const owner=ownerOfDef(data,def),shape=data.shapes.find(s=>s.id===owner);
-  if(shape?.axes)return null;
+  if((shape?.axes||shape?.chart))return null;
   if(shape?.solid){
     const p=spatialDef(data,def);
     return p?toUnits(shape,projector(solidSettings(shape.solid)).project(p.position)):null;
@@ -187,14 +187,14 @@ export function buildWorld(data: SceneData): World {
     ref: (r) => {
       if ('s' in r) {
         const s = shapeOf(data, r.s);
-        if (!s || s.axes) return null;
+        if (!s || (s.axes||s.chart)) return null;
         const geo = geometryOf(s);
         const p = geo.points[r.i];
         return p ? toUnits(s, p) : null;
       }
       if ('c' in r) {
         const s = shapeOf(data, r.c);
-        if (!s || s.axes) return null;
+        if (!s || (s.axes||s.chart)) return null;
         const geo = geometryOf(s);
         return geo.solid ? toUnits(s, geo.solid.center) : geo.circle ? toUnits(s, { x: geo.circle.cx ?? 0, y: geo.circle.cy ?? 0 }) : null;
       }
@@ -336,7 +336,7 @@ export function refName(data: SceneData, r: Ref): string {
 export function allPointRefs(data: SceneData): Ref[] {
   const out: Ref[] = [];
   for (const s of data.shapes) {
-    if(s.axes||s.caption)continue;
+    if((s.axes||s.chart)||s.caption)continue;
     const geo = geometryOf(s);
     geo.points.forEach((_, i) => out.push({ s: s.id, i }));
     if ((geo.solid || geo.circle) && s.center.show) out.push({ c: s.id });

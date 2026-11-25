@@ -10,6 +10,7 @@ import { placeLabel, placeOutward, type Obstacles, type Box } from '../core/labe
 import { Txt } from './FigureText';
 import { CaptionInk } from './CaptionSvg';
 import { layoutCaption } from '../core/figureLatex';
+import { ChartSvg } from './ChartSvg';
 import { AxesSvg } from './AxesSvg';
 import type { AxesTool } from '../core/types';
 import { SolidSvg } from './SolidSvg';
@@ -92,7 +93,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
   const placedAll = data.shapes.map((s) => ({ s, pl: placeShape(s, G, data.canvas) }));
   let figSpan = 0;
   for (const { s, pl } of placedAll) {
-    if (s.caption || s.axes) continue;
+    if (s.caption || (s.axes||s.chart)) continue;
     const boxPts = [...pl.pts, ...(pl.boundsPts ?? [])];
     if (pl.circle) {
       const { c, r } = pl.circle;
@@ -110,7 +111,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
   /* ---- obstacles for label placement ---- */
   const obs: Obstacles = { segs: [], circles: [] };
   for (const { s, pl } of placedAll) {
-    if(s.axes||s.caption) continue;
+    if((s.axes||s.chart)||s.caption) continue;
     if (pl.geo.solid) {
       const solid = pl.geo.solid;
       const map = (v: Vec) => toPx(data, toUnits(s, v));
@@ -180,6 +181,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
 
   /* ---- shapes ---- */
   for (const { s, pl } of placedAll) {
+    if(s.chart){bodies.push(<ChartSvg key={s.id} data={data} shape={s} lang={lang} interactive={interactive} lockAll={lockAll} />);continue;}
     if(s.axes){bodies.push(<AxesSvg key={s.id} data={data} shape={s} lang={lang} interactive={interactive} lockAll={lockAll} tool={axesTool?.shape===s.id?axesTool:null} />);continue;}
     const size=sizeFor(s.id);
     const lk = lockedFor(s.id);
@@ -524,7 +526,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     };
     if (wantLines) {
       for (const { s, pl } of placedAll) {
-        if(s.axes) continue;
+        if((s.axes||s.chart)) continue;
         if (pl.geo.solid) {
           pl.geo.solid.edges.forEach((e, i) => {
             if (e.hidden && s.solid?.showHidden === false) return;
@@ -544,7 +546,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     }
     if (wantCircles) {
       for (const { s, pl } of placedAll) {
-        if(s.axes) continue;
+        if((s.axes||s.chart)) continue;
         if (pl.circle) hots.push(<circle key={`hc${s.id}`} className="hot hot-ring" cx={pl.circle.c.x} cy={pl.circle.c.y} r={pl.circle.r} data-hot="c" data-shape={s.id} />);
         else if(circularPoint(s,0)){
           const {project,view}=projector(solidSettings(s.solid));
@@ -574,7 +576,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
         }
       };
       for (const { s, pl } of placedAll) {
-        if (s.axes) continue;
+        if ((s.axes||s.chart)) continue;
         if (pl.geo.solid) {
           pl.geo.solid.edges.forEach((e, i) => {
             if (e.hidden && s.solid?.showHidden === false) return;
@@ -593,7 +595,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     }
     if (wantCircles) {
       for (const { s, pl } of placedAll) {
-        if (s.axes || !pl.circle) continue;
+        if ((s.axes||s.chart) || !pl.circle) continue;
         const geo = pl.geo.circle;
         if (!geo) continue;
         const cx = geo.cx ?? 0, cy = geo.cy ?? 0;
@@ -622,7 +624,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
   if (interactive && hot) {
     const segs: PixelSegment[] = [];
     for (const { s, pl } of placedAll) {
-      if (s.axes || s.solid || s.caption || pl.geo.solid || s.pathCurved) continue;
+      if ((s.axes||s.chart) || s.solid || s.caption || pl.geo.solid || s.pathCurved) continue;
       const n = pl.pts.length;
       if (n < 2) continue;
       const last = pl.geo.open || n < 3 ? n - 1 : n;
@@ -648,13 +650,13 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     for (const c of findCrossings(segs, existing, tol)) {
       mark(`sx${c.at.x.toFixed(1)}_${c.at.y.toFixed(1)}`, c.at, { 'data-xmark': 'x', 'data-a': JSON.stringify(c.a), 'data-b': JSON.stringify(c.b), 'data-c': JSON.stringify(c.c), 'data-d': JSON.stringify(c.d), 'data-k': c.k });
     }
-    const circles: PixelCircle[] = placedAll.filter(({ s, pl }) => pl.circle && !s.solid && !s.axes).map(({ s, pl }) => ({ shape: s.id, c: pl.circle!.c, r: pl.circle!.r }));
+    const circles: PixelCircle[] = placedAll.filter(({ s, pl }) => pl.circle && !s.solid && !(s.axes||s.chart)).map(({ s, pl }) => ({ shape: s.id, c: pl.circle!.c, r: pl.circle!.r }));
     for (const c of findCircleHits(segs, circles, existing, tol)) {
       mark(`sc${c.at.x.toFixed(1)}_${c.at.y.toFixed(1)}`, c.at, { 'data-xmark': 'xc', 'data-a': JSON.stringify(c.a), 'data-b': JSON.stringify(c.b), 'data-circle': c.shape, 'data-which': c.which, 'data-k': c.k });
     }
     const sceneCircles = placedAll.flatMap(({ s }) => {
       const circ = shapeCircle(s);
-      return circ && !s.solid && !s.axes ? [{ id: s.id, ...circ }] : [];
+      return circ && !s.solid && !(s.axes||s.chart) ? [{ id: s.id, ...circ }] : [];
     });
     for (let i = 0; i < sceneCircles.length; i++) for (let j = i + 1; j < sceneCircles.length; j++) {
       circleCircle(sceneCircles[i].c, sceneCircles[i].r, sceneCircles[j].c, sceneCircles[j].r).forEach((at, which) => {
@@ -698,7 +700,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     const capLaid = sel.caption ? layoutCaption((sel.caption[lang] ?? '').trim() ? sel.caption[lang] : ' ', lang, data.style.fontSize) : null;
     const capCenter = capLaid ? placeShape(sel, G, data.canvas).center : null;
     /* Axes are selected by their ink (arrow tips, letters, numbers), not by the empty range box around them. */
-    const axInk = sel.axes ? inkBoundsPx({ ...rawData, shapes: rawData.shapes.filter((x) => x.id === sel.id), points: [], lines: [], marks: [] }, lang) : null;
+    const axInk = (sel.axes||sel.chart) ? inkBoundsPx({ ...rawData, shapes: rawData.shapes.filter((x) => x.id === sel.id), points: [], lines: [], marks: [] }, lang) : null;
     const base = capLaid && capCenter ? { x: capCenter.x - capLaid.w / 2, y: capCenter.y - capLaid.h / 2, w: capLaid.w, h: capLaid.h } : axInk ? { x: axInk.minX, y: axInk.minY, w: axInk.maxX - axInk.minX, h: axInk.maxY - axInk.minY } : boundsPx(placeShape(sel, G, data.canvas));
     const extra = groupExtraPx(data, sel.id);
     let minx = base.x, miny = base.y, maxx = base.x + base.w, maxy = base.y + base.h;

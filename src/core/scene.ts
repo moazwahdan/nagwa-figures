@@ -1,5 +1,6 @@
 import { axesBounds, defaultAxes } from './axes';
 import { captionSize } from './figureLatex';
+import { defaultChart, plotCorners } from './charts';
 import { DEF_BY_ID, defaultParams, type Geometry } from './shapes2d';
 import { DEFAULT_SOLID, solidSettings } from './shapes3d';
 import { QUESTION_PORTRAIT } from './imageFrames';
@@ -49,6 +50,7 @@ export function uid(): string {
 
 export function geometryOf(s: ShapeInstance): Geometry {
   if(s.axes)return {points:axesBounds(s.params,s.axes)};
+  if(s.chart)return {points:plotCorners(s.params.w,s.params.h)};
   if(s.caption){
     const box=captionSize(s.caption.ar,s.caption.en,captionEm());
     const k=1.05,w=Math.max(box.w*k,1.2),h=Math.max(box.h*k,0.7);
@@ -64,7 +66,7 @@ export function newShape(defId: string): ShapeInstance {
   const def = DEF_BY_ID[defId];
   const params = defaultParams(def);
   const geo = def.build(params);
-  const n = def.kind==='axes'?0:geo.points.length;
+  const n = def.kind==='axes'||def.kind==='chart'?0:geo.points.length;
   const sideCount = geo.solid?.edges.length ?? (geo.open ? Math.max(0, n - 1) : n);
   const particle = def.id === 'mech-particle' || def.id === 'mech-roller';
   return {
@@ -72,6 +74,7 @@ export function newShape(defId: string): ShapeInstance {
     defId,
     params,
     ...(def.kind==='axes'?{axes:defaultAxes(defId==='axes-3d'?3:2)}:{}),
+    ...(def.kind==='chart'?{chart:defaultChart(defId.replace('chart-','') as 'bar'|'line'|'dot')}:{}),
     ...(def.kind === "solid" ? { solid: JSON.parse(JSON.stringify({ ...DEFAULT_SOLID, ...(defId === "solid-sphere" || defId === "solid-cylinder" || defId === "solid-cone" ? { projection: "orthographic", angle: 25 } : {}) })) } : {}),
     offset: { x: 0, y: 0 },
     rotation: 0,
@@ -176,7 +179,7 @@ export function newCaptionShape(caption: FigureCaption): ShapeInstance {
 
 /** Keep per-vertex arrays in sync when the vertex count changes (regular n-gon). */
 export function syncArrays(s: ShapeInstance): ShapeInstance {
-  if(s.axes||s.caption)return s;
+  if(s.axes||s.caption||s.chart)return s;
   if (s.path && s.params.n !== s.path.length) s = { ...s, params: { ...s.params, n: s.path.length } };
   const geo = geometryOf(s);
   const n = geo.points.length;

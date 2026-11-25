@@ -8,7 +8,8 @@ export function ShapeIcon({ defId, size = 30 }: { defId: string; size?: number }
   const geo = def.build(defaultParams(def), ['solid-sphere', 'solid-cylinder', 'solid-cone'].includes(defId) ? { ...DEFAULT_SOLID, projection: 'orthographic', angle: 25 } : undefined);
   const box = 24;
   let body: React.JSX.Element;
-  if(def.kind==='axes')body=<g><path d="M2 12H22M12 22V2M19 9L22 12L19 15M9 5L12 2L15 5" />{defId==='axes-3d'&&<path d="M12 12L3 21M3 17V21H7" />}</g>;
+  if(def.kind==='chart')body=defId==='chart-bar'?<g><path d="M3 21H21M3 21V3"/><rect x="6" y="11" width="3.5" height="10"/><rect x="11" y="6" width="3.5" height="15"/><rect x="16" y="14" width="3.5" height="7"/></g>:defId==='chart-line'?<g><path d="M3 21H21M3 21V3M5 19L10 14L14 16L20 6"/><circle cx="10" cy="14" r="1"/><circle cx="14" cy="16" r="1"/><circle cx="20" cy="6" r="1"/></g>:<g><path d="M2 20H22"/><circle cx="6" cy="16" r="1.2"/><circle cx="12" cy="16" r="1.2"/><circle cx="12" cy="11" r="1.2"/><circle cx="12" cy="6" r="1.2"/><circle cx="18" cy="16" r="1.2"/><circle cx="18" cy="11" r="1.2"/></g>;
+  else if(def.kind==='axes')body=<g><path d="M2 12H22M12 22V2M19 9L22 12L19 15M9 5L12 2L15 5" />{defId==='axes-3d'&&<path d="M12 12L3 21M3 17V21H7" />}</g>;
   else if (geo.strokes?.length || geo.circles?.length || (geo.circle && (geo.points.length || geo.open))) {
     const extras = [
       ...geo.points,

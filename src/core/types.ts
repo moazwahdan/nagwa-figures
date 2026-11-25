@@ -20,6 +20,7 @@ export type ShapeKind =
   | 'circle'
   | 'solid'
   | 'axes'
+  | 'chart'
   | 'mechanics'
   | 'caption';
 export type DrawingKit = 'geometry' | 'mechanics' | 'free';
@@ -64,6 +65,7 @@ export interface ShapeInstance {
   defId: string; // key in SHAPE_DEFS
   solid?: SolidSettings;
   axes?: AxesSettings;
+  chart?: ChartSettings;
   caption?: FigureCaption;
   /** Extra shift (scene units) so each language's image keeps its own edge limits when dragging. */
   langShift?: { ar?: Vec; en?: Vec };
@@ -255,3 +257,31 @@ export interface AxisFunction {id:string;expr:string;from?:number;to?:number;das
 export interface AxesTool {kind:'point'|'line'|'vector'|'plane';shape:string;picks:AxisCoord[];plane:ConstructionPlane;level:number;showCoordinates:boolean;coordinatePosition:'beside'|'below'}
 
 export type AxisEquation = {id:string;kind:'line'|'vector';origin:AxisCoord;direction:AxisCoord;dashed:boolean} | {id:string;kind:'plane';normal:AxisCoord;constant:number};
+
+export type ChartKind = 'bar' | 'line' | 'dot';
+export interface ChartText { ar: string; en: string }
+/** One row of the chart's data table. Bar: label + y. Line: x + y. Dot plot: x + y (the number of dots). */
+export interface ChartPoint { x: number; y: number; label?: ChartText; color?: string; marker?: boolean }
+export interface ChartSettings {
+  kind: ChartKind;
+  title: ChartText;
+  xTitle: ChartText;
+  yTitle: ChartText;
+  points: ChartPoint[];
+  xMin: number; xMax: number; xStep: number;
+  yMin: number; yMax: number; yStep: number;
+  grid: 'none' | 'horizontal' | 'full';
+  /** Bar charts: vertical grid lines through the bar centres or between the slots. */
+  gridAt: 'center' | 'edge';
+  /** Axis arrow heads past the plot area (line graph, dot plot). */
+  arrows: boolean;
+  /** Letters x / y (س / ص) at the arrow tips. */
+  showAxisNames: boolean;
+  showNumbers: boolean;
+  /** Bar width as a fraction of its slot. */
+  barWidth: number;
+  /** Default colour of bars / line / dots. */
+  color: string;
+  lineConnect: boolean;
+  markers: boolean;
+}

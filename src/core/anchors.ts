@@ -41,5 +41,5 @@ export function unitAnchors(s: ShapeInstance): Record<AnchorKey, Vec> {
 }
 
 export function canHaveAnchors(s: ShapeInstance): boolean {
-  return !s.axes && !s.solid && !s.caption;
+  return !(s.axes||s.chart) && !s.solid && !s.caption;
 }
