@@ -311,7 +311,9 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
             at = c;
           }
         }
-        addGlyph(add, { x: at.x + (n?.x ?? 0), y: at.y + (n?.y ?? 0) }, text, size, lang, italic);
+        const fin = { x: at.x + (n?.x ?? 0), y: at.y + (n?.y ?? 0) };
+        addGlyph(add, fin, text, size, lang, italic);
+        if (p.circled) { const rr = size * 0.78 + data.style.stroke; add(fin.x - rr, fin.y - rr); add(fin.x + rr, fin.y + rr); }
       }
     }
   }
@@ -340,6 +342,27 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
     add(q.x + pad, q.y + pad);
   };
   for (const m of data.marks) {
+    if (m.kind === 'angle') {
+      const at = world.ref(m.at), pa = world.ref(m.a), pb = world.ref(m.b);
+      if (at && pa && pb) {
+        const q = toPx(data, at), qa = toPx(data, pa), qb = toPx(data, pb);
+        const r = data.style.arcRadius * (m.size ?? 1);
+        add(q.x - r, q.y - r); add(q.x + r, q.y + r);
+        if (m.text.trim()) {
+          const fs = data.style.fontSize * 0.9;
+          const n1 = Math.hypot(qa.x - q.x, qa.y - q.y) || 1, n2 = Math.hypot(qb.x - q.x, qb.y - q.y) || 1;
+          const u1 = { x: (qa.x - q.x) / n1, y: (qa.y - q.y) / n1 }, u2 = { x: (qb.x - q.x) / n2, y: (qb.y - q.y) / n2 };
+          let d = { x: u1.x + u2.x, y: u1.y + u2.y };
+          const dl = Math.hypot(d.x, d.y);
+          d = dl < 1e-6 ? { x: -u1.y, y: u1.x } : { x: d.x / dl, y: d.y / dl };
+          const ext = Math.abs(d.x) * m.text.length * fs * 0.28 + Math.abs(d.y) * fs * 0.4;
+          const ui = Math.min(data.canvas.w, data.canvas.h) / 900;
+          const g = r + ext + 5 * ui;
+          addGlyph(add, { x: q.x + d.x * g, y: q.y + d.y * g }, m.text, fs, 'en', false);
+        }
+      }
+      continue;
+    }
     if ('at' in m) addRef(m.at, m.kind === 'attachment' ? data.style.stroke * 12 : markR);
     if ('a' in m) addRef(m.a);
     if ('b' in m) addRef(m.b);

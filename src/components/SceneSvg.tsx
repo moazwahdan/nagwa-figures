@@ -513,6 +513,9 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
   for (const p of data.points) {
     const pos = P({ p: p.id });
     if (!pos) continue;
+    /* A point sitting on a circle centre that already shows the same name would draw a second letter. */
+    const dupCentre = placedAll.some((e) => e.pl.circle && e.s.center.show && e.s.center.name.trim().toUpperCase() === p.name.trim().toUpperCase() && Math.hypot(e.pl.circle.c.x - pos.x, e.pl.circle.c.y - pos.y) < 1.5);
+    if (dupCentre && !p.circled && !p.color) continue;
     const ink = p.color ?? '#000';
     if (p.dot) dots.push(<circle key={`pd${p.id}`} cx={pos.x} cy={pos.y} r={dotR} fill={ink} />);
     const own = ownerOfDef(data, p.def);

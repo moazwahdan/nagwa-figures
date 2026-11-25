@@ -7,7 +7,7 @@ import { DEFAULT_CANVAS, DEFAULT_STYLE, mergeShapePatch, newCaptionShape, newSha
 import { DEFAULT_OPTS, stepAccepts, stepHint, TOOL_BY_ID, type Target, type ToolOpts } from './tools';
 import type { AnchorKey, DrawingKit, Lang, ProjectSettings, Vec, CanvasSize, ConLine, ConMark, ConPoint, FigureCaption, Ref, SceneData, ShapeInstance, StyleSettings, AxesTool } from './types';
 import { lockedPaperInk } from './paper';
-import { cropViewBox } from './crop';
+import { cropViewBox, inkBoundsPx } from './crop';
 import { growRoom } from './imageFrames';
 import './crop';
 import { fitScene, followShape, ownerOfDef, ownerOfRef, pruneUnresolved } from './world';
@@ -149,6 +149,21 @@ export const useStore = create<Store>((set, get) => {
     return { canvas: s.canvas, shapes: s.shapes, points: s.points, lines: s.lines, marks: s.marks, style: s.style, viewScale: s.viewScale };
   };
   const notice = (kind: 'error' | 'info', text: string): Notice => ({ kind, text, n: ++noticeCounter });
+  /** Whatever is added or edited must stay inside the image: refit the view when its ink leaves the current one. */
+  const refitIfOutside = () => {
+    const d2 = data();
+    const view = get().langView;
+    const outside = (['ar', 'en'] as const).some((lang) => {
+      const b = inkBoundsPx(d2, lang);
+      const v = view?.[lang] ?? { x: 0, y: 0, w: d2.canvas.w, h: d2.canvas.h };
+      return !!b && (b.minX < v.x - 0.5 || b.minY < v.y - 0.5 || b.maxX > v.x + v.w + 0.5 || b.maxY > v.y + v.h + 0.5);
+    });
+    if (outside) {
+      const ar = cropViewBox(d2, 'ar'), en = cropViewBox(d2, 'en');
+      set({ langView: { ...(ar ? { ar } : {}), ...(en ? { en } : {}) } });
+    }
+  };
+
   const commitTool = (picks: Target[]) => {
     const st = get();
     const tool = st.tool ? TOOL_BY_ID[st.tool] : null;
@@ -179,6 +194,7 @@ export const useStore = create<Store>((set, get) => {
       tool: keepTool ? st.tool : null,
       notice: notice('info', res.info ? res.info : `${tool.label}: done.${keepTool ? ' '+tool.prompts[0] : ' Select / move mode.'}`),
     });
+    if (changed) refitIfOutside();
   };
 
   return {
@@ -463,14 +479,17 @@ export const useStore = create<Store>((set, get) => {
     patchPoint: (id, patch) => {
       push();
       set({ points: get().points.map((p) => (p.id === id ? { ...p, ...patch } : p)) });
+      refitIfOutside();
     },
     patchLine: (id, patch) => {
       push();
       set({ lines: get().lines.map((l) => (l.id === id ? { ...l, ...patch } : l)) });
+      refitIfOutside();
     },
     patchMark: (id, patch) => {
       push();
       set({ marks: get().marks.map((m) => (m.id === id && (m.kind === 'attachment' || m.kind === 'angle') ? { ...m, ...patch } as typeof m : m)) });
+      refitIfOutside();
     },
     toggleAnchor: (shapeId, key) => {
       const d = data();
