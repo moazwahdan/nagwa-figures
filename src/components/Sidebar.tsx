@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PlanesDialog } from './PlanesDialog';
 import { ColorSwatches } from './ColorSwatches';
 import { AxesConstructions } from './AxesInspector';
 import { CustomShapePicker } from './CustomShapesPanel';
@@ -183,7 +184,7 @@ function toolsFor(shape: ShapeInstance): string[] {
   const points = ['side-point', 'free-point', 'rel-point'];
   const lines = ['segment', 'arc', 'perp', 'perp-at', 'bisector', 'parallel'];
   if (!def || def.kind === 'axes' || def.kind === 'chart' || def.kind === 'caption') return [];
-  const mechExtras=['force-line',...(['mech-ground'].includes(shape.defId)?['attach-wall','attach-particle','attach-block']:[]),...(['mech-rod'].includes(shape.defId)?['attach-hinge','attach-particle','attach-block']:[]),...(['mech-wedge'].includes(shape.defId)?['attach-particle','attach-block']:[])];
+  const mechExtras=['force-line',...(['mech-ground'].includes(shape.defId)?['attach-wall','attach-particle','attach-block']:[]),...(['mech-rod'].includes(shape.defId)?['attach-hinge','attach-particle','attach-block']:[]),...(['mech-wedge','mech-planes'].includes(shape.defId)?['attach-particle','attach-block']:[])];
   if(def.kind==='mechanics'){
     const geo=geometryOf(shape);
     const list = [...points,...(geo.points.length>1?['midpoint','extend','mark']:[]),...lines,...(geo.circle?['radius','diameter','tangent']:[]),...mechExtras];
@@ -213,6 +214,7 @@ export function Sidebar() {
   const allowed=selected?toolsFor(selected):[];
   const allowedKey=allowed.join(',');
   const [shapeFamily,setShapeFamily]=useState<string>('Quadrilaterals');
+  const [planesOpen,setPlanesOpen]=useState(false);
   useEffect(()=>{if(tool&&!GLOBAL_TOOLS.includes(tool)&&!allowedKey.split(',').includes(tool))setTool(null);},[tool,allowedKey,setTool]);
   const [cw, setCw] = useState<string | null>(null);
   const [ch, setCh] = useState<string | null>(null);
@@ -329,12 +331,13 @@ export function Sidebar() {
           </>
         )}
 
+        {planesOpen&&<PlanesDialog onClose={()=>setPlanesOpen(false)} onCreate={p=>{addShape('mech-planes',p);setPlanesOpen(false);}}/>}
         {pane==='shapes' && (
           <>
             <Tooltip tip="Mix any categories in one drawing.">
               <div className="shape-families" aria-label="Shape families">{SHAPE_FAMILIES.map(g=><button key={g} className={`shape-family ${g===shapeFamily?'on':''}`} aria-pressed={g===shapeFamily} onClick={()=>setShapeFamily(g)}>{g}<span>{g==='Lines'?SHAPE_LINE_TOOLS.length:SHAPE_DEFS.filter(d=>d.group===g&&!d.hidden).length}</span></button>)}</div>
             </Tooltip>
-            {shapeFamily==='Lines'?lineTiles:shapeFamily==='Mechanics'?<div className="grid">{SHAPE_DEFS.filter(d=>d.group==='Mechanics'&&!d.hidden).map(d=><Tooltip key={d.id} tip={d.tip}><button className="tile" onClick={()=>addShape(d.id)}><ShapeIcon defId={d.id}/><span>{d.label}</span></button></Tooltip>)}</div>:<div className="grid">{SHAPE_DEFS.filter(d=>d.group===shapeFamily&&!d.hidden).map(d=><Tooltip key={d.id} tip={d.tip}><button className="tile" onClick={()=>addShape(d.id)}><ShapeIcon defId={d.id}/><span>{d.label}</span></button></Tooltip>)}</div>}
+            {shapeFamily==='Lines'?lineTiles:shapeFamily==='Mechanics'?<div className="grid">{SHAPE_DEFS.filter(d=>d.group==='Mechanics'&&!d.hidden).map(d=><Tooltip key={d.id} tip={d.tip}><button className="tile" onClick={()=>d.id==='mech-planes'?setPlanesOpen(true):addShape(d.id)}><ShapeIcon defId={d.id}/><span>{d.label}</span></button></Tooltip>)}</div>:<div className="grid">{SHAPE_DEFS.filter(d=>d.group===shapeFamily&&!d.hidden).map(d=><Tooltip key={d.id} tip={d.tip}><button className="tile" onClick={()=>addShape(d.id)}><ShapeIcon defId={d.id}/><span>{d.label}</span></button></Tooltip>)}</div>}
             <Section title="Texts" count={captionCount} open={false} tip="Free notes on the figure. Arabic and English are written separately. Math in $...$ like $\frac{\text{Area}}{5}$. Looped alif is \alef."><TextsPanel /></Section>
             {!customMode&&<Section title="Custom shapes" open={false} tip="Choose a saved figure to add an independent copy. Create and manage them in Custom shapes studio."><CustomShapePicker /></Section>}
           </>

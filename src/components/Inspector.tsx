@@ -331,7 +331,7 @@ function ShapePanel({ s, style: figStyle, patch, onDelete, onDup }: { s: ShapeIn
 
       <div className="group-title">Dimensions <small>for the drawing only — figure is auto-scaled</small></div>
       <div className="fields">
-        {def.params.map((p) =>
+        {def.params.filter((p) => !p.show || p.show(s.params)).map((p) =>
           p.options ? (
             <label className="field" key={p.key}>
               <span>{p.label}</span>

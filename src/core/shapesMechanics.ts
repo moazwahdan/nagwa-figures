@@ -1,4 +1,4 @@
-import type { GeoStroke, Geometry, ShapeDef } from './shapes2d';
+import type { GeoStroke, Geometry, ParamDef, ShapeDef } from './shapes2d';
 import type { Vec } from './types';
 
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -106,6 +106,38 @@ export const MECHANICS_DEFS: ShapeDef[] = [
     build: ({ h, rough, hatchSide }) => {
       const A = { x: 0, y: 0 }, B = { x: 0, y: h };
       return recenter({ points: [A, B], open: true, strokes: [{ pts: [A, B] }, ...(rough ? hatch(A, B, hatchSide >= 0 ? 1 : -1) : [])] });
+    },
+  },
+  {
+    id: 'mech-planes',
+    kind: 'mechanics',
+    group: 'Mechanics',
+    label: 'Connected planes',
+    tip: 'Two or three planes joined end to end, left to right: horizontal, inclined or vertical, each with its own angle, length and hatching.',
+    params: [
+      { key: 'count', label: 'Number of planes', def: 2, min: 2, max: 3, options: [{ value: 2, label: '2 planes' }, { value: 3, label: '3 planes' }] },
+      ...[1, 2, 3].flatMap((i): ParamDef[] => {
+        const on = (p: Record<string, number>) => p.count >= i, inc = (p: Record<string, number>) => p.count >= i && p[`t${i}`] === 1, ver = (p: Record<string, number>) => p.count >= i && p[`t${i}`] === 2;
+        return [
+          { key: `t${i}`, label: `Plane ${i}: type`, def: i === 1 ? 0 : 1, min: 0, max: 2, options: [{ value: 0, label: 'Horizontal' }, { value: 1, label: 'Inclined' }, { value: 2, label: 'Vertical' }], show: on },
+          { key: `l${i}`, label: `Plane ${i}: length`, def: i === 1 ? 5 : 6, min: 0.5, max: 80, show: on },
+          { key: `a${i}`, label: `Plane ${i}: angle (°)`, def: 30, min: 5, max: 85, step: 1, show: inc },
+          { key: `s${i}`, label: `Plane ${i}: slope`, def: 1, min: -1, max: 1, options: [{ value: 1, label: 'Rises toward +x' }, { value: -1, label: 'Rises toward −x' }], show: inc },
+          { key: `h${i}`, label: `Plane ${i}: hatching`, def: 1, min: -1, max: 1, options: [{ value: 1, label: 'Right' }, { value: -1, label: 'Left' }], show: ver },
+        ];
+      }),
+      { key: 'rough', label: 'Surface', def: 1, min: 0, max: 1, options: [{ value: 1, label: 'Rough — show hatching' }, { value: 0, label: 'Smooth — hide hatching' }] },
+    ],
+    build: (p) => {
+      const pts: Vec[] = [{ x: 0, y: 0 }], hatches: GeoStroke[] = [];
+      for (let i = 1; i <= p.count; i++) {
+        const type = p[`t${i}`], len = p[`l${i}`], a = rad(p[`a${i}`]);
+        const dir = type === 2 ? { x: 0, y: 1 } : type === 1 ? { x: Math.cos(a), y: (p[`s${i}`] >= 0 ? 1 : -1) * Math.sin(a) } : { x: 1, y: 0 };
+        const from = pts[pts.length - 1], to = { x: from.x + dir.x * len, y: from.y + dir.y * len };
+        pts.push(to);
+        if (p.rough) hatches.push(...hatch(from, to, type === 2 ? (p[`h${i}`] >= 0 ? -1 : 1) : -1));
+      }
+      return recenter({ points: pts, open: true, strokes: [{ pts }, ...hatches] });
     },
   },
   {

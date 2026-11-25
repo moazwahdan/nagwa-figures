@@ -62,9 +62,9 @@ export function geometryOf(s: ShapeInstance): Geometry {
   return DEF_BY_ID[s.defId].build(s.params, s.solid ? solidSettings(s.solid) : undefined);
 }
 
-export function newShape(defId: string): ShapeInstance {
+export function newShape(defId: string, given?: Record<string, number>): ShapeInstance {
   const def = DEF_BY_ID[defId];
-  const params = defaultParams(def);
+  const params = { ...defaultParams(def), ...(given ?? {}) };
   const geo = def.build(params);
   const n = def.kind==='axes'||def.kind==='chart'?0:geo.points.length;
   const sideCount = geo.solid?.edges.length ?? (geo.open ? Math.max(0, n - 1) : n);

@@ -734,7 +734,7 @@ export const TOOLS: ToolDef[] = [
     id:`attach-${item}`,label:`${item[0].toUpperCase()+item.slice(1)} on plane`,group:'Lines' as const,
     tip:`Place a ${item} with the midpoint of its lower edge on a ground, inclined plane, or rod.`,
     steps:['lineOrPoint'] as StepKind[],prompts:['Click an endpoint or any position on the supporting line'],
-    run:(d:SceneData,[t]:Target[])=>run(d,b=>{const s=support(b,t);if(!['mech-ground','mech-wedge','mech-rod'].includes(s.shape.defId))fail('Choose a Ground, Inclined plane, or Rod.');b.addBody(`mech-${item}`,b.pos(s.at),vsub(b.pos(s.b),b.pos(s.a)));}),
+    run:(d:SceneData,[t]:Target[])=>run(d,b=>{const s=support(b,t);if(!['mech-ground','mech-wedge','mech-rod','mech-planes'].includes(s.shape.defId))fail('Choose a Ground, Inclined plane, Connected planes, or Rod.');const al=vsub(b.pos(s.b),b.pos(s.a));if(Math.abs(al.x)<1e-6*Math.abs(al.y))fail('A vertical plane cannot carry a '+item+'. Choose a horizontal or inclined plane.');b.addBody(`mech-${item}`,b.pos(s.at),al);}),
   })),
   {
     id: 'extend',

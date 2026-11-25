@@ -14,6 +14,8 @@ export interface ParamDef {
   step?: number;
   /** If present the param is a choice: value -> label */
   options?: { value: number; label: string }[];
+  /** Hide this param in the Inspector while it does not apply (the value is still stored). */
+  show?: (p: Record<string, number>) => boolean;
 }
 
 export interface GeoStroke {

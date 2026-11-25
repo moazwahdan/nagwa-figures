@@ -57,7 +57,7 @@ interface Store extends SceneData {
   picks: Target[];
   notice: Notice | null;
 
-  addShape: (defId: string) => void;
+  addShape: (defId: string, params?: Record<string, number>) => void;
   addCaption: (caption: FigureCaption) => void;
   /** `new` = composer for a fresh note; a shape id = edit that caption. */
   textComposer: 'new' | string | null;
@@ -257,10 +257,10 @@ export const useStore = create<Store>((set, get) => {
       push();
       set({...next,selectedId:next.shapes[next.shapes.length-1]?.id??null,tool:null,axesTool:null,picks:[],langView:null});
     },
-    addShape: (defId) => {
+    addShape: (defId, params) => {
       push();
       const d = data();
-      const fresh = placeOnTop(d.shapes, newShape(defId));
+      const fresh = placeOnTop(d.shapes, newShape(defId, params));
       if (!d.shapes.length) {
         const chartCanvas = fresh.chart ? { bar: { w: 440, h: 360 }, line: { w: 420, h: 580 }, dot: { w: 540, h: 250 } }[fresh.chart.kind] : undefined;
         const next = fitScene({ ...d, ...(chartCanvas ? { canvas: chartCanvas } : {}), shapes: [fresh] });

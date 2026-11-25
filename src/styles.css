@@ -606,3 +606,9 @@ input[type=range] { accent-color: var(--accent); }
 .toolbar { border-radius: 12px; box-shadow: 0 4px 16px rgba(79, 107, 237, 0.12); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* connected planes dialog */
+.planes-modal { width:min(760px,100%); }
+.planes-cols { display:grid; gap:10px; margin-top:12px; }
+.planes-col { display:grid; gap:8px; align-content:start; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--bg,transparent); }
+.planes-col b { font-size:13px; }
