@@ -18,6 +18,7 @@ import { toUnits } from '../core/scene';
 import { formatNumber, localizeName, vertexLabelOf, localizeText, pointLabel, toArabicDigits, unitLabel } from '../core/labels';
 import { dataForLang, placeShape, type Placed } from '../core/scene';
 import { inkBoundsPx, vertexGapShifts } from '../core/crop';
+import { effectiveForceSymbol, forceSymbolParts } from '../core/forceSymbols';
 import { interiorAngles } from '../core/shapes2d';
 import type { StepKind, Target } from '../core/tools';
 import { COMPASS_DEG, SIDE_FRACS, forceSnapLocals } from '../core/forceSnaps';
@@ -369,16 +370,13 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     if(l.arrow==='start'||l.arrow==='both')arrow(a,{x:-e.x,y:-e.y},`las${l.id}`);
     if(l.arrow==='middle')arrow(add({x:(a.x+b.x)/2,y:(a.y+b.y)/2},e,m*.42),e,`lam${l.id}`);
     if(l.kind==='force'){
-      const forces=data.lines.filter(x=>x.kind==='force');
-      const idx=forces.length>=2?String(forces.indexOf(l)+1):'';
-      const letter=lang==='ar'?'ق':'F';
-      const sub=idx?(lang==='ar'?toArabicDigits(idx):idx):undefined;
+      const parts=forceSymbolParts(effectiveForceSymbol(data.lines,l),lang,st);
       const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
       const up=nrm.y>0?{x:-nrm.x,y:-nrm.y}:nrm;
       const at=l.arrow==='middle'?add(mid,up,sizeFor(ownerOfRef(data,l.a))*0.7):add(l.arrow==='start'?a:b,l.arrow==='start'?{x:-e.x,y:-e.y}:e,mark*1.15);
       const own=ownerOfRef(data,l.a);
       const fs=sizeFor(own)*0.95;
-      texts.push(<Txt key={`cf${l.id}`} color={ink} pos={nzV(l.nudgeByLang?.[lang]??l.nudge,at)} text={letter} sub={sub} lang={lang} size={fs} italic={lang==='en'&&st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`line:${l.id}`} direction={lang==='ar'?'rtl':'ltr'} flip={lang==='ar'}/>);
+      if(parts)texts.push(<Txt key={`cf${l.id}`} color={ink} pos={nzV(l.nudgeByLang?.[lang]??l.nudge,at)} text={parts.text} sub={parts.sub} lang={lang} size={fs} italic={lang==='en'&&st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`line:${l.id}`} direction={lang==='ar'?'rtl':'ltr'} flip={lang==='ar'}/>);
     } else if (l.label.text.trim()) {
       const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
       const raw = localizeText(l.label.text.trim(), lang, st);

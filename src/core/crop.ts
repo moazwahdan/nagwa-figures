@@ -9,10 +9,11 @@ import { ARROW_TO_STROKE } from './paper';
 import { setInkFit } from './world';
 import type { AxisCoord, ShapeInstance } from './types';
 import { labelSize } from './labelSizing';
+import { effectiveForceSymbol, forceSymbolParts } from './forceSymbols';
 import { placeLabel, placeOutward, type Box, type Obstacles } from './labelPlacement';
 import { vertexLabelOf, localizeText, pointLabel, unitLabel } from './labels';
 import type { Lang, Ref, SceneData, Vec } from './types';
-import { buildWorld, ownerOfDef, toPx } from './world';
+import { buildWorld, ownerOfDef, ownerOfRef, toPx } from './world';
 import { CROP_PAD_PT, MARK_TO_STROKE, ptToPx } from './paper';
 
 export const CROP_MESSAGE = 'برجاء تقريب الرموز من النقط الخاصة بها قدر الامكان وعدم ترك فراغات غير مرغوب بها علي جوانب الشكل الاربعة';
@@ -332,6 +333,28 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
     for (const r of [l.a, l.b, ...(l.via ?? [])]) {
       const u = world.ref(r);
       if (u) { const q = toPx(data, u); add(q.x, q.y); }
+    }
+    if (l.kind === 'force') {
+      const fa = world.ref(l.a), fb = world.ref(l.b);
+      const parts = forceSymbolParts(effectiveForceSymbol(data.lines, l), lang, data.style);
+      if (fa && fb && parts) {
+        const pa = toPx(data, fa), pb = toPx(data, fb);
+        const len = Math.hypot(pb.x - pa.x, pb.y - pa.y) || 1, e = { x: (pb.x - pa.x) / len, y: (pb.y - pa.y) / len };
+        const own = data.shapes.find((s) => s.id === ownerOfRef(data, l.a));
+        const fs = labelSize(data, own, lang) * 0.95;
+        const markK = data.style.markSize || data.style.stroke * MARK_TO_STROKE;
+        let at: Vec;
+        if (l.arrow === 'middle') {
+          let nx = -e.y, ny = e.x;
+          if (ny > 0) { nx = -nx; ny = -ny; }
+          at = { x: (pa.x + pb.x) / 2 + nx * fs * 0.7, y: (pa.y + pb.y) / 2 + ny * fs * 0.7 };
+        } else {
+          const start = l.arrow === 'start', tip = start ? pa : pb, dir = start ? { x: -e.x, y: -e.y } : e;
+          at = { x: tip.x + dir.x * markK * 1.15, y: tip.y + dir.y * markK * 1.15 };
+        }
+        const fn = l.nudgeByLang?.[lang] ?? l.nudge;
+        addGlyph(add, { x: at.x + (fn?.x ?? 0), y: at.y + (fn?.y ?? 0) }, parts.text + (parts.sub ?? ''), fs, lang, lang === 'en' && italic);
+      }
     }
     if (l.label.text.trim()) {
       const a = world.ref(l.a), b = world.ref(l.b);

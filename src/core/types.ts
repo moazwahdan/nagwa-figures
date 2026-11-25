@@ -183,6 +183,8 @@ export interface ConLine {
   weight?: number;
   /** Hex colour of the line, its arrow head and its label. Missing = black. */
   color?: string;
+  /** Symbol written on a force arrow: 'F', 'F1'…'F20' (ق، ق١…), a letter A–Z, or 'none'. Missing = automatic. */
+  symbol?: string;
   /** Smart force arrow: labelled F / ق, numbered when several exist. */
   kind?: 'force';
   label: SideLabel;
