@@ -173,6 +173,8 @@ export interface ConLine {
   arrow?: 'none' | 'start' | 'end' | 'both' | 'middle';
   /** Line width relative to the global stroke. */
   weight?: number;
+  /** Hex colour of the line, its arrow head and its label. Missing = black. */
+  color?: string;
   /** Smart force arrow: labelled F / ق, numbered when several exist. */
   kind?: 'force';
   label: SideLabel;

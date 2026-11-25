@@ -350,7 +350,8 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
   /* ---- construction lines ---- */
   for (const { l, a, b } of conLines) {
     const e=norm(sub(b,a)),nrm={x:-e.y,y:e.x},dash=l.dashed?'9 7':undefined;
-    const lineStroke={...stroke,strokeWidth:st.stroke*(l.weight??1)};
+    const ink=l.color??'#000';
+    const lineStroke={...stroke,stroke:ink,strokeWidth:st.stroke*(l.weight??1)};
     if(l.curve==='arc'){
       const theta=(l.arcFraction??.25)*Math.PI*2,chord=Math.hypot(b.x-a.x,b.y-a.y);
       const radius=chord/(2*Math.sin(Math.min(theta,Math.PI*2-theta)/2)||1);
@@ -361,7 +362,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     const m=st.stroke*ARROW_TO_STROKE*(l.weight??1);
     const arrow=(tip:Vec,dir:Vec,key:string)=>{
       const base=add(tip,dir,-m),nn={x:-dir.y,y:dir.x};
-      drawn.push(<path key={key} d={`M${tip.x} ${tip.y} L${base.x+nn.x*m*.38} ${base.y+nn.y*m*.38} L${base.x-nn.x*m*.38} ${base.y-nn.y*m*.38} Z`} fill="#000"/>);
+      drawn.push(<path key={key} d={`M${tip.x} ${tip.y} L${base.x+nn.x*m*.38} ${base.y+nn.y*m*.38} L${base.x-nn.x*m*.38} ${base.y-nn.y*m*.38} Z`} fill={ink}/>);
     };
     if(l.arrow==='end'||l.arrow==='both')arrow(b,e,`lae${l.id}`);
     if(l.arrow==='start'||l.arrow==='both')arrow(a,{x:-e.x,y:-e.y},`las${l.id}`);
@@ -376,7 +377,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       const at=l.arrow==='middle'?add(mid,up,sizeFor(ownerOfRef(data,l.a))*0.7):add(l.arrow==='start'?a:b,l.arrow==='start'?{x:-e.x,y:-e.y}:e,mark*1.15);
       const own=ownerOfRef(data,l.a);
       const fs=sizeFor(own)*0.95;
-      texts.push(<Txt key={`cf${l.id}`} pos={nzV(l.nudgeByLang?.[lang]??l.nudge,at)} text={letter} sub={sub} lang={lang} size={fs} italic={lang==='en'&&st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`line:${l.id}`} direction={lang==='ar'?'rtl':'ltr'} flip={lang==='ar'}/>);
+      texts.push(<Txt key={`cf${l.id}`} color={ink} pos={nzV(l.nudgeByLang?.[lang]??l.nudge,at)} text={letter} sub={sub} lang={lang} size={fs} italic={lang==='en'&&st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`line:${l.id}`} direction={lang==='ar'?'rtl':'ltr'} flip={lang==='ar'}/>);
     } else if (l.label.text.trim()) {
       const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
       const raw = localizeText(l.label.text.trim(), lang, st);
@@ -384,7 +385,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       const own = ownerOfRef(data, l.a);
       const fs = sizeFor(own) * 0.9;
       texts.push(
-        <Txt key={`ct${l.id}`} pos={nzV(l.nudgeByLang?.[lang] ?? l.nudge, placeLabel(mid, nrm, estW(text, fs), fs * 0.8, { segs: obs.segs.filter(([p, q]) => !(p === a && q === b)), circles: obs.circles }, taken))}
+        <Txt key={`ct${l.id}`} color={ink} pos={nzV(l.nudgeByLang?.[lang] ?? l.nudge, placeLabel(mid, nrm, estW(text, fs), fs * 0.8, { segs: obs.segs.filter(([p, q]) => !(p === a && q === b)), circles: obs.circles }, taken))}
           text={text} lang={lang} size={fs} interactive={interactive} locked={lockedFor(own)} owner={own} con={`line:${l.id}`} />,
       );
     }

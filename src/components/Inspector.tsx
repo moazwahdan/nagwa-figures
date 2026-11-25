@@ -12,6 +12,7 @@ import { solidSettings } from '../core/shapes3d';
 import type { SolidSettings, ShapeInstance } from '../core/types';
 import { ShapeIcon } from './ShapeIcon';
 import { Tooltip } from './Tooltip';
+import { ColorSwatches } from './ColorSwatches';
 
 function NumField({ label, value, onCommit, min, max, step, suffix }: { label: string; value: number; onCommit: (n: number) => void; min?: number; max?: number; step?: number; suffix?: string }) {
   const [txt, setTxt] = useState(String(value));
@@ -158,6 +159,7 @@ function ConstructionList() {
                   <label className="check tiny"><input type="checkbox" checked={l.dashed} onChange={(e) => patchLine(l.id, { dashed: e.target.checked })} />dash</label>
                   <select aria-label={`Arrow on ${nm(l.a)}${nm(l.b)}`} value={l.arrow??'none'} onChange={e=>patchLine(l.id,{arrow:e.target.value as typeof l.arrow})}><option value="none">no arrow</option><option value="start">start</option><option value="end">end</option><option value="both">both</option><option value="middle">middle</option></select>
                   <label className="field tiny"><span>weight</span><input aria-label={`Line weight ${nm(l.a)}${nm(l.b)}`} type="number" min={.5} max={4} step={.1} value={l.weight??1} onChange={e=>patchLine(l.id,{weight:Math.max(.5,Math.min(4,Number(e.target.value)||1))})}/></label>
+                  <ColorSwatches label={`Colour ${nm(l.a)}${nm(l.b)}`} value={l.color} onPick={(hex)=>patchLine(l.id,{color:hex})}/>
                 </div>
               </div>
             ))}

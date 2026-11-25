@@ -18,9 +18,11 @@ interface TxtProps {
   paint?: 'fn-rtl';
   sub?: string;
   flip?: boolean;
+  /** Text colour. Default black. */
+  color?: string;
 }
 
-function AlefLoop({ size }: { size: number }) {
+function AlefLoop({ size, color = '#000' }: { size: number; color?: string }) {
   return (
     <text
       x={0}
@@ -29,14 +31,14 @@ function AlefLoop({ size }: { size: number }) {
       textAnchor="middle"
       fontSize={size}
       fontFamily={FONT_ALEF}
-      fill="#000"
+      fill={color}
     >
       {ALEF_GLYPH}
     </text>
   );
 }
 
-export function Txt({ pos, text, lang, size, italic, interactive, locked, owner, shapeId, labelKey, con, direction, paint, sub, flip }: TxtProps) {
+export function Txt({ pos, text, lang, size, italic, interactive, locked, owner, shapeId, labelKey, con, direction, paint, sub, flip, color = '#000' }: TxtProps) {
   const attrs: Record<string, unknown> = {};
   if (interactive) {
     if (shapeId) attrs['data-shape-id'] = shapeId;
@@ -57,9 +59,9 @@ export function Txt({ pos, text, lang, size, italic, interactive, locked, owner,
     const total = letterW + (arg ? argW + gap : 0);
     return (
       <g transform={`translate(${pos.x} ${pos.y})`} {...attrs}>
-        <text x={total / 2 - letterW / 2} y={0} dy="0.35em" textAnchor="middle" fontSize={size} fontFamily={FONT_AR} fill="#000">{letter}</text>
-        {arg ? <text x={-(total / 2 - argW / 2)} y={0} dy="0.35em" textAnchor="middle" fontSize={size} fontFamily={FONT_AR} unicodeBidi="bidi-override" direction="ltr" fill="#000">{arg}</text> : null}
-        {sub ? <text x={size * 0.28} y={size * 0.42} fontSize={size * 0.62} fontFamily={FONT_AR} fill="#000">{sub}</text> : null}
+        <text x={total / 2 - letterW / 2} y={0} dy="0.35em" textAnchor="middle" fontSize={size} fontFamily={FONT_AR} fill={color}>{letter}</text>
+        {arg ? <text x={-(total / 2 - argW / 2)} y={0} dy="0.35em" textAnchor="middle" fontSize={size} fontFamily={FONT_AR} unicodeBidi="bidi-override" direction="ltr" fill={color}>{arg}</text> : null}
+        {sub ? <text x={size * 0.28} y={size * 0.42} fontSize={size * 0.62} fontFamily={FONT_AR} fill={color}>{sub}</text> : null}
       </g>
     );
   }
@@ -74,7 +76,7 @@ export function Txt({ pos, text, lang, size, italic, interactive, locked, owner,
           textAnchor="middle"
           fontSize={size}
           fontFamily={FONT_ALEF}
-          fill="#000"
+          fill={color}
           transform={`translate(${pos.x} ${pos.y})`}
           {...attrs}
         >
@@ -87,11 +89,11 @@ export function Txt({ pos, text, lang, size, italic, interactive, locked, owner,
       <g transform={`translate(${pos.x} ${pos.y})`} {...attrs}>
         {parts.map((chunk, i) => (
           <g key={i} transform={`translate(${(i - (parts.length - 1) / 2) * size * 0.7} 0)`}>
-            {i > 0 && <AlefLoop size={size} />}
-            {chunk ? <text x={0} y={0} dy="0.35em" textAnchor="middle" fontSize={size} fontFamily={FONT_AR} fill="#000">{chunk}</text> : null}
+            {i > 0 && <AlefLoop size={size} color={color} />}
+            {chunk ? <text x={0} y={0} dy="0.35em" textAnchor="middle" fontSize={size} fontFamily={FONT_AR} fill={color}>{chunk}</text> : null}
           </g>
         ))}
-        {sub ? <text x={size * 0.28} y={size * 0.42} fontSize={size * 0.62} fontFamily={FONT_AR} fill="#000">{sub}</text> : null}
+        {sub ? <text x={size * 0.28} y={size * 0.42} fontSize={size * 0.62} fontFamily={FONT_AR} fill={color}>{sub}</text> : null}
       </g>
     );
   }
@@ -106,7 +108,7 @@ export function Txt({ pos, text, lang, size, italic, interactive, locked, owner,
       fontStyle={italic && lang === 'en' ? 'italic' : 'normal'}
       unicodeBidi={flip || direction === 'ltr' ? 'bidi-override' : direction ? 'isolate' : undefined}
       direction={flip ? 'rtl' : (direction??(lang === 'ar' ? 'rtl' : 'ltr'))}
-      fill="#000"
+      fill={color}
       transform={`translate(${pos.x} ${pos.y})`}
       {...attrs}
     >

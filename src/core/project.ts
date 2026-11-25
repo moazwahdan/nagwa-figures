@@ -103,6 +103,7 @@ export function parseProjectText(text: string): ProjectDocument {
     if(l.arrow!==undefined&&!['none','start','end','both','middle'].includes(l.arrow))fail();
     if(l.weight!==undefined&&(!finite(l.weight)||l.weight<.5||l.weight>4))fail();
     if(l.kind!==undefined&&l.kind!=='force')fail();
+    if(l.color!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(l.color))fail();
   }
   for (const m of d.marks) {
     if (!['right','tick','arrow','attachment'].includes(m.kind)) fail();
