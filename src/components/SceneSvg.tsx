@@ -524,7 +524,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       const size=sizeFor(own);
       const cen = centroidOf(own);
       const outward = cen ? sub(pos, cen) : { x: 0, y: -1 };
-      const at = nzV(p.nudgeByLang?.[lang] ?? p.nudge, place(pos, Math.hypot(outward.x, outward.y) < 1e-6 ? { x: 0, y: -1 } : outward, estW(text, size), size * 0.8));
+      const at = nzV(p.nudgeByLang?.[lang] ?? p.nudge, place(pos, Math.hypot(outward.x, outward.y) < 1e-6 ? { x: 0, y: -1 } : outward, p.circled ? Math.max(estW(text, size), size * 1.56) : estW(text, size), p.circled ? size * 1.56 : size * 0.8));
       if (p.circled) dots.push(<circle key={`pc${p.id}`} cx={at.x} cy={at.y} r={size * 0.78} fill="#fff" stroke={ink} strokeWidth={st.stroke} />);
       texts.push(<Txt key={`pl${p.id}`} color={ink} pos={at} text={text} lang={lang} size={size} italic={st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`point:${p.id}`} />);
     }

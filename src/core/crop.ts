@@ -12,7 +12,7 @@ import { labelSize } from './labelSizing';
 import { placeLabel, placeOutward, type Box, type Obstacles } from './labelPlacement';
 import { vertexLabelOf, localizeText, pointLabel, unitLabel } from './labels';
 import type { Lang, Ref, SceneData, Vec } from './types';
-import { buildWorld, toPx } from './world';
+import { buildWorld, ownerOfDef, toPx } from './world';
 import { CROP_PAD_PT, MARK_TO_STROKE, ptToPx } from './paper';
 
 export const CROP_MESSAGE = 'برجاء تقريب الرموز من النقط الخاصة بها قدر الامكان وعدم ترك فراغات غير مرغوب بها علي جوانب الشكل الاربعة';
@@ -288,13 +288,23 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
     }
   }
   const world = buildWorld(data);
+  /* Construction lines are obstacles for labels, exactly as in the drawing. */
+  for (const l of data.lines) {
+    const pts = [l.a, ...(l.curve === 'spline' ? (l.via ?? []) : []), l.b].map((r) => world.ref(r));
+    if (pts.some((u) => !u)) continue;
+    const px = pts.map((u) => toPx(data, u!));
+    for (let i = 1; i < px.length; i++) obs.segs.push([px[i - 1], px[i]]);
+  }
   for (const p of data.points) {
     const u = world.pt.get(p.id);
     if (!u) continue;
     const q = toPx(data, u);
     add(q.x, q.y);
     if (p.showLabel) {
-      const own = data.shapes.find((s) => s.id === (p.def.t === 'local' || p.def.t === 'circ' ? p.def.shape : undefined));
+      const ownerId = ownerOfDef(data, p.def);
+      const own = data.shapes.find((s) => s.id === ownerId);
+      const dupCentre = data.shapes.some((s) => { if (!s.center.show || s.center.name.trim().toUpperCase() !== p.name.trim().toUpperCase()) return false; const c = placeShape(s, data.viewScale, data.canvas).circle?.c; return !!c && Math.hypot(c.x - q.x, c.y - q.y) < 1.5; });
+      if (dupCentre && !p.circled && !p.color) continue;
       const text = pointLabel(p.name, p.nameAr, lang, own?.caseMode ?? 'upper', data.style).trim();
       if (text) {
         const n = p.nudgeByLang?.[lang] ?? p.nudge;
@@ -303,11 +313,12 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
         if (own) {
           const pl = placeShape(own, data.viewScale, data.canvas);
           const pts = pl.pts;
-          if (pts.length) {
-            const cen = { x: pts.reduce((a, pt) => a + pt.x, 0) / pts.length, y: pts.reduce((a, pt) => a + pt.y, 0) / pts.length };
+          if (pts.length || pl.circle) {
+            const cen = pts.length ? { x: pts.reduce((a, pt) => a + pt.x, 0) / pts.length, y: pts.reduce((a, pt) => a + pt.y, 0) / pts.length } : pl.circle!.c;
             const outward = { x: q.x - cen.x, y: q.y - cen.y };
-            const c = placeLabel(q, Math.hypot(outward.x, outward.y) < 1e-6 ? { x: 0, y: -1 } : outward, slotW(text, size), size * 0.8, obs, taken);
-            taken.push({ c, w: slotW(text, size), h: size * 0.8 });
+            const bw = p.circled ? Math.max(slotW(text, size), size * 1.56) : slotW(text, size), bh = p.circled ? size * 1.56 : size * 0.8;
+            const c = placeLabel(q, Math.hypot(outward.x, outward.y) < 1e-6 ? { x: 0, y: -1 } : outward, bw, bh, obs, taken);
+            taken.push({ c, w: bw, h: bh });
             at = c;
           }
         }
