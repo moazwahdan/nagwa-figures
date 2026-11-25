@@ -13,7 +13,8 @@ import type { SolidSettings, ShapeInstance } from '../core/types';
 import { ShapeIcon } from './ShapeIcon';
 import { Tooltip } from './Tooltip';
 import { ColorSwatches } from './ColorSwatches';
-import { FORCE_SYMBOL_CHOICES, LETTER_SYMBOL_CHOICES, effectiveForceSymbol, forceSymbolName } from '../core/forceSymbols';
+import { effectiveForceSymbol, forceSymbolName } from '../core/forceSymbols';
+import { ForceSymbolPicker } from './ForceSymbolPicker';
 
 function NumField({ label, value, onCommit, min, max, step, suffix }: { label: string; value: number; onCommit: (n: number) => void; min?: number; max?: number; step?: number; suffix?: string }) {
   const [txt, setTxt] = useState(String(value));
@@ -167,18 +168,13 @@ function ConstructionList() {
                   };
                   return <div className="fields"><NumField label="Length" value={Math.round(len*100)/100} min={0.05} step={0.1} onCommit={(v)=>move(v,ang)}/><NumField label="Angle °" value={Math.round(ang*10)/10} min={-360} max={360} onCommit={(v)=>move(len,v)}/></div>;
                 })()}
-                {l.kind==='force'&&<label className="field"><span>Symbol</span>
-                  <select aria-label={`Force symbol ${nm(l.a)}${nm(l.b)}`} value={l.symbol??'auto'} onChange={(e)=>{
-                    const v=e.target.value,next=v==='auto'?undefined:v,sym=effectiveForceSymbol(lines.map(x=>x.id===l.id?{...x,symbol:next}:x),{...l,symbol:next});
+                {l.kind==='force'&&<div className="field"><span>Symbol</span>
+                  <ForceSymbolPicker label={`Force symbol ${nm(l.a)}${nm(l.b)}`} value={l.symbol} auto={effectiveForceSymbol(lines.map(x=>x.id===l.id?{...x,symbol:undefined}:x),{...l,symbol:undefined})} onPick={(next)=>{
+                    const sym=effectiveForceSymbol(lines.map(x=>x.id===l.id?{...x,symbol:next}:x),{...l,symbol:next});
                     const clash=sym!=='none'&&lines.some(x=>x.id!==l.id&&x.kind==='force'&&effectiveForceSymbol(lines,x)===sym);
                     if(clash&&!window.confirm(`The symbol ${forceSymbolName(sym)} is already used by another force. Use it again?`))return;
                     patchLine(l.id,{symbol:next});
-                  }}>
-                    <option value="auto">Automatic ({forceSymbolName(effectiveForceSymbol(lines,{...l,symbol:undefined}))})</option>
-                    <option value="none">No symbol</option>
-                    <optgroup label="Force">{FORCE_SYMBOL_CHOICES.map(c=><option key={c} value={c}>{forceSymbolName(c)}</option>)}</optgroup>
-                    <optgroup label="Letters">{LETTER_SYMBOL_CHOICES.map(c=><option key={c} value={c}>{c}</option>)}</optgroup>
-                  </select></label>}
+                  }}/></div>}
                 <div className="con-tools">
                   <TextField value={l.label.text} placeholder="hidden" onCommit={(t) => patchLine(l.id, { label: { ...l.label, text: t } })} />
                   <label className="check tiny"><input type="checkbox" checked={l.label.unit} onChange={(e) => patchLine(l.id, { label: { ...l.label, unit: e.target.checked } })} />cm</label>

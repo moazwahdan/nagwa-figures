@@ -11,7 +11,7 @@ export const isForceSymbol = (v: unknown): v is string => typeof v === 'string' 
 export function effectiveForceSymbol(lines: ConLine[], l: ConLine): string {
   if (l.symbol) return l.symbol;
   const forces = lines.filter((x) => x.kind === 'force');
-  return forces.length >= 2 ? `F${forces.indexOf(l) + 1}` : 'F';
+  return forces.length >= 2 ? `F${forces.findIndex((x) => x.id === l.id) + 1}` : 'F';
 }
 
 /** Text and subscript to draw for a symbol in a language; null = nothing written. */
