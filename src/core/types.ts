@@ -282,6 +282,8 @@ export interface ChartSettings {
   frame: boolean;
   /** Small tick marks that cross the axes at every step. */
   tickMarks: boolean;
+  /** Grid lines stay visible where they cross the bars. */
+  gridOverBars?: boolean;
   /** Hide x tick numbers beyond this value (the grid keeps going). Omitted = all numbers. */
   xLabelMax?: number;
   /** Hide y tick numbers below / above these values (the ticks and grid stay). */

@@ -8,7 +8,7 @@ export function defaultChart(kind: ChartKind): ChartSettings {
   const base = {
     title: T('', ''), xTitle: T('', ''), yTitle: T('', ''),
     xMin: 0, xMax: 6, xStep: 1, yMin: 0, yMax: 10, yStep: 1,
-    grid: 'none' as const, gridAt: 'center' as const, arrows: false, showAxisNames: false, showNumbers: true, frame: false, tickMarks: true,
+    grid: 'none' as const, gridAt: 'center' as const, arrows: false, showAxisNames: false, showNumbers: true, frame: false, tickMarks: true, gridOverBars: true,
     barWidth: 0.5, color: '#62AADF', lineConnect: true, markers: true,
   };
   if (kind === 'bar') {
@@ -64,6 +64,7 @@ export function validateChart(c: unknown): asserts c is ChartSettings {
   if (!['none', 'horizontal', 'full'].includes(s!.grid) || !['center', 'edge', 'cell'].includes(s!.gridAt) || !isHexColor(s!.color)) bad();
   for (const k of ['xLabelMax', 'yLabelMin', 'yLabelMax', 'axisPad'] as const) if (s![k] !== undefined && !finite(s![k])) bad();
   if (s!.axisPad !== undefined && (s!.axisPad < 0 || s!.axisPad > 5)) bad();
+  if (s!.gridOverBars !== undefined && typeof s!.gridOverBars !== 'boolean') bad();
   for (const k of ['arrows', 'showAxisNames', 'showNumbers', 'frame', 'tickMarks', 'lineConnect', 'markers'] as const) if (typeof s![k] !== 'boolean') bad();
   for (const p of s!.points as ChartPoint[]) {
     if (!finite(p.x) || !finite(p.y)) bad();
