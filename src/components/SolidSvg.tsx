@@ -1,5 +1,5 @@
 import type React from 'react';
-import { vertexLabelOf, localizeText, unitLabel } from '../core/labels';
+import { localizeName, vertexLabelOf, localizeText, unitLabel } from '../core/labels';
 import { solidSettings, type SolidGeometry } from '../core/shapes3d';
 import { toUnits } from '../core/scene';
 import { toPx } from '../core/world';

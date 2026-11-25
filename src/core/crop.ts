@@ -1,14 +1,14 @@
 import { inferFrame } from './imageFrames';
 import { FONT_AR, FONT_EN } from './fonts';
 import { dataForLang, geometryOf, placeShape, toUnits } from './scene';
-import { axisNumberSize, axisTick, axisTickMarks, axisRayHidden, axisUsesTickUnit, projectAxes, ranges } from './axes';
+import { axisNumberSize, axisTick, axisTickMarks, axisRayHidden, axisUsesTickUnit, clipAxisLine, equationGeometry, planeOrder, projectAxes, ranges } from './axes';
 import { formatNumber, localizeFunctionLabel, localizeName as localizeVertexName, renderSymbol, toArabicDigits } from './labels';
 import { curveGeometry } from './functions';
 import { ARROW_TO_STROKE } from './paper';
 import { setInkFit } from './world';
 import type { AxisCoord, ShapeInstance } from './types';
 import { labelSize } from './labelSizing';
-import { placeLabel, type Box, type Obstacles } from './labelPlacement';
+import { placeLabel, placeOutward, type Box, type Obstacles } from './labelPlacement';
 import { vertexLabelOf, localizeText, pointLabel, unitLabel } from './labels';
 import type { Lang, Ref, SceneData, Vec } from './types';
 import { buildWorld, toPx } from './world';
@@ -71,7 +71,16 @@ export function glyphBox(text: string, size: number, lang: Lang, italic: boolean
     const below = size * (lang === 'ar' ? 1 : 0.65);
     box = { x: -w / 2, y: -above, w, h: above + below };
   }
-  glyphCache.set(key, box);
+  /* Fonts load on first use. Measuring before that gives the fallback font's size, so such a measurement is used once and not remembered. */
+  let ready = true;
+  try {
+    if (typeof document !== 'undefined' && document.fonts) {
+      const spec = `${italic && lang === 'en' ? 'italic ' : ''}${Math.max(size, 1)}px ${lang === 'ar' ? FONT_AR : FONT_EN}`;
+      ready = document.fonts.check(spec, text);
+      if (!ready) void document.fonts.load(spec, text).catch(() => undefined);
+    }
+  } catch { ready = true; }
+  if (ready) glyphCache.set(key, box);
   return box;
 }
 
@@ -160,6 +169,22 @@ function addAxesInk(add: (x: number, y: number) => void, data: SceneData, s: Sha
     }
   }
   if (a.showZero ?? a.numbers) { const o = P(zero); glyph('axis:zero', { x: o.x - fs * 0.45, y: o.y + fs * 0.55 }, number(0), fs * 0.64); }
+  /* Lines, vectors, planes and equations drawn on the axes are ink too. */
+  for (const l of a.lines) {
+    const from = a.points.find((p) => p.id === l.a)?.at, to = a.points.find((p) => p.id === l.b)?.at;
+    if (!from || !to) continue;
+    const ends = l.kind === 'line' ? clipAxisLine(from, to, s.params, a.dimension) : [from, to];
+    if (ends) for (const e of ends) { const q = P(e); add(q.x, q.y); }
+  }
+  for (const plane of a.planes) {
+    const coords = plane.points.map((id) => a.points.find((p) => p.id === id)?.at);
+    if (coords.some((c) => !c)) continue;
+    try { planeOrder(coords as AxisCoord[]); for (const c of coords as AxisCoord[]) { const q = P(c); add(q.x, q.y); } } catch { /* invalid plane is not drawn */ }
+  }
+  for (const eq of a.equations ?? []) {
+    const g = equationGeometry(eq, s.params, a.dimension);
+    if (g) for (const e of g) { const q = P(e); add(q.x, q.y); }
+  }
   const rr = stroke * 2;
   for (const point of a.points) {
     const p = P(point.at);
@@ -198,10 +223,10 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
   const taken: Box[] = [];
   const obs = shapeObstacles(data);
   const deferred: (VertexRec & { nudge?: Vec })[] = [];
-  const sit = (anchor: Vec, outward: Vec, text: string, size: number, nudge?: Vec, defer = false) => {
+  const sit = (anchor: Vec, outward: Vec, text: string, size: number, nudge?: Vec, defer = false, fixed = false) => {
     const w = slotW(text, size);
     const h = size * 0.8;
-    const c = placeLabel(anchor, outward, w, h, obs, taken);
+    const c = fixed ? placeOutward(anchor, outward, w, h) : placeLabel(anchor, outward, w, h, obs, taken);
     taken.push({ c, w, h });
     if (defer) { deferred.push({ v: anchor, c, text, size, nudge }); return; }
     addGlyph(add, { x: c.x + (nudge?.x ?? 0), y: c.y + (nudge?.y ?? 0) }, text, size, lang, italic);
@@ -216,7 +241,7 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
       add(pl.circle.c.x + pl.circle.r, pl.circle.c.y + pl.circle.r);
     }
     if (pl.circle && s.center.show && s.center.name.trim()) {
-      const name = lang === 'ar' && s.center.name.trim().toUpperCase() === 'O' ? 'م' : localizeName(s.center.name, lang, s.caseMode, data.style);
+      const name = lang === 'ar' && s.center.name.trim().toUpperCase() === 'O' ? 'م' : localizeVertexName(s.center.name, lang, s.caseMode, data.style);
       sit(pl.circle.c, { x: -0.7, y: 0.7 }, name, size, s.nudgeByLang?.[lang]?.c ?? s.nudge.c);
     }
     const n = pl.pts.length;
@@ -227,7 +252,8 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
         const nudge = s.nudgeByLang?.[lang]?.[`v${i}`] ?? s.nudge[`v${i}`];
         if (s.showVertexLabels) {
           const text = vertexLabelOf(s, i, lang, data.style);
-          if (text) sit(v, { x: v.x - centroid.x, y: v.y - centroid.y }, text, size, nudge, true);
+          if (text && pl.geo.solid) { const o = toPx(data, toUnits(s, { x: 0, y: 0 })); sit(v, { x: v.x - o.x, y: v.y - o.y }, text, size, nudge, false, true); }
+          else if (text) sit(v, { x: v.x - centroid.x, y: v.y - centroid.y }, text, size, nudge, true);
         } else if (nudge) add(v.x + nudge.x, v.y + nudge.y);
         const sl = s.sides[i];
         if (sl?.text.trim() && (n >= 3 && !pl.geo.open || i < n - 1)) {

@@ -6,7 +6,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { bakeCaptionMath } from '../core/mathliveHost';
 import type { CSSProperties } from 'react';
-import { placeLabel, type Obstacles, type Box } from '../core/labelPlacement';
+import { placeLabel, placeOutward, type Obstacles, type Box } from '../core/labelPlacement';
 import { Txt } from './FigureText';
 import { CaptionInk } from './CaptionSvg';
 import { layoutCaption } from '../core/figureLatex';
@@ -14,9 +14,9 @@ import { AxesSvg } from './AxesSvg';
 import type { AxesTool } from '../core/types';
 import { SolidSvg } from './SolidSvg';
 import { toUnits } from '../core/scene';
-import { formatNumber, vertexLabelOf, localizeText, pointLabel, toArabicDigits, unitLabel } from '../core/labels';
+import { formatNumber, localizeName, vertexLabelOf, localizeText, pointLabel, toArabicDigits, unitLabel } from '../core/labels';
 import { dataForLang, placeShape, type Placed } from '../core/scene';
-import { vertexGapShifts } from '../core/crop';
+import { inkBoundsPx, vertexGapShifts } from '../core/crop';
 import { interiorAngles } from '../core/shapes2d';
 import type { StepKind, Target } from '../core/tools';
 import { COMPASS_DEG, SIDE_FRACS, forceSnapLocals } from '../core/forceSnaps';
@@ -162,6 +162,8 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     taken.push({ c, w, h: hh });
     return c;
   };
+  /* Letters on a 3D solid sit at a fixed side of their vertex, so resizing never makes them jump. */
+  const placeSolid = (anchor: Vec, outward: Vec, w: number, hh: number): Vec => placeOutward(anchor, outward, w, hh, 9);
   const bodies: React.JSX.Element[] = [];
   const drawn: React.JSX.Element[] = [];
   const dots: React.JSX.Element[] = [];
@@ -199,7 +201,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       continue;
     }
     if (pl.geo.solid) {
-      bodies.push(<SolidSvg key={`b${s.id}`} data={data} shape={s} geometry={pl.geo.solid} pts={pl.pts} lang={lang} interactive={interactive} locked={lk} place={place} />);
+      bodies.push(<SolidSvg key={`b${s.id}`} data={data} shape={s} geometry={pl.geo.solid} pts={pl.pts} lang={lang} interactive={interactive} locked={lk} place={placeSolid} />);
       continue;
     }
     const mapLocal = (v: Vec) => toPx(data, toUnits(s, v));
@@ -695,7 +697,9 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
   if (sel) {
     const capLaid = sel.caption ? layoutCaption((sel.caption[lang] ?? '').trim() ? sel.caption[lang] : ' ', lang, data.style.fontSize) : null;
     const capCenter = capLaid ? placeShape(sel, G, data.canvas).center : null;
-    const base = capLaid && capCenter ? { x: capCenter.x - capLaid.w / 2, y: capCenter.y - capLaid.h / 2, w: capLaid.w, h: capLaid.h } : boundsPx(placeShape(sel, G, data.canvas));
+    /* Axes are selected by their ink (arrow tips, letters, numbers), not by the empty range box around them. */
+    const axInk = sel.axes ? inkBoundsPx({ ...rawData, shapes: rawData.shapes.filter((x) => x.id === sel.id), points: [], lines: [], marks: [] }, lang) : null;
+    const base = capLaid && capCenter ? { x: capCenter.x - capLaid.w / 2, y: capCenter.y - capLaid.h / 2, w: capLaid.w, h: capLaid.h } : axInk ? { x: axInk.minX, y: axInk.minY, w: axInk.maxX - axInk.minX, h: axInk.maxY - axInk.minY } : boundsPx(placeShape(sel, G, data.canvas));
     const extra = groupExtraPx(data, sel.id);
     let minx = base.x, miny = base.y, maxx = base.x + base.w, maxy = base.y + base.h;
     for (const p of extra) { minx = Math.min(minx, p.x); miny = Math.min(miny, p.y); maxx = Math.max(maxx, p.x); maxy = Math.max(maxy, p.y); }

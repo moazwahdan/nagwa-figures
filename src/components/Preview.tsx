@@ -17,7 +17,7 @@ import { projector, solidSettings } from '../core/shapes3d';
 type Vec = { x: number; y: number };
 type Drag =
   | { mode: 'move'; id: string; start: Vec; off: Vec; shift0: { ar?: Vec; en?: Vec } }
-  | { mode: 'scale'; id: string; dist0: number; scale0: number; scaleX0: number; scaleY0: number; center: Vec; start: Vec }
+  | { mode: 'scale'; id: string; dist0: number; scale0: number; scaleX0: number; scaleY0: number; center: Vec; start: Vec; ok?: { scale: number; scaleX: number; scaleY: number } }
   | { mode: 'rotate'; id: string; angle0: number; rotation0: number; center: Vec }
   | { mode: 'label'; id: string; key: string; start: Vec; nudge: Vec }
   | { mode: 'conLabel'; kind: 'point' | 'line'; id: string; start: Vec; nudge: Vec };
@@ -409,7 +409,7 @@ export function Preview({ lang, zoom = 1 }: { lang: Lang; zoom?: number }) {
           const ok = Number.isFinite(box.minX + box.maxX + box.minY + box.maxY);
           const cr = st.langView?.[l];
           const m = cr ? { minX: cr.x, minY: cr.y, maxX: cr.x + cr.w, maxY: cr.y + cr.h } : { minX: pad, minY: pad, maxX: st.canvas.w - pad, maxY: st.canvas.h - pad };
-          const fitsX = ok && box.maxX - box.minX <= m.maxX - m.minX + 1e-6, fitsY = ok && box.maxY - box.minY <= m.maxY - m.minY + 1e-6;
+          const fitsX = ok && box.maxX - box.minX <= m.maxX - m.minX + 1, fitsY = ok && box.maxY - box.minY <= m.maxY - m.minY + 1;
           return {
             loX: fitsX ? m.minX - box.minX : -Infinity, hiX: fitsX ? m.maxX - box.maxX : Infinity,
             loY: fitsY ? m.minY - box.minY : -Infinity, hiY: fitsY ? m.maxY - box.maxY : Infinity,
@@ -428,15 +428,45 @@ export function Preview({ lang, zoom = 1 }: { lang: Lang; zoom?: number }) {
       st.dragShape(d.id, patch as Partial<import('../core/types').ShapeInstance>);
     } else if (d.mode === 'scale') {
       const clamp = (v: number) => Math.min(1e7, Math.max(0.1, v));
+      let want: { scale: number; scaleX: number; scaleY: number } | null = null;
       if (e.shiftKey) {
         const rx = Math.max(Math.abs(d.start.x - d.center.x), 4);
         const ry = Math.max(Math.abs(d.start.y - d.center.y), 4);
         const sx = clamp(d.scaleX0 * Math.abs(p.x - d.center.x) / rx);
         const sy = clamp(d.scaleY0 * Math.abs(p.y - d.center.y) / ry);
-        if (Number.isFinite(sx) && Number.isFinite(sy)) st.dragShape(d.id, { scale: d.scale0, scaleX: sx, scaleY: sy });
+        if (Number.isFinite(sx) && Number.isFinite(sy)) want = { scale: d.scale0, scaleX: sx, scaleY: sy };
       } else {
         const k = clamp(d.scale0 * (Math.hypot(p.x - d.center.x, p.y - d.center.y) / d.dist0));
-        if (Number.isFinite(k)) st.dragShape(d.id, { scale: k, scaleX: d.scaleX0, scaleY: d.scaleY0 });
+        if (Number.isFinite(k)) want = { scale: k, scaleX: d.scaleX0, scaleY: d.scaleY0 };
+      }
+      const sh = st.shapes.find((x) => x.id === d.id);
+      if (want && sh) {
+        /* A shape can be enlarged only while its ink stays inside the image (the Fit crop when showing, otherwise the canvas). */
+        const vs = st.viewScale, pad = ptToPx(CROP_PAD_PT);
+        const overflow = (sc: { scale: number; scaleX: number; scaleY: number }) => {
+          const solo = { canvas: st.canvas, shapes: [{ ...sh, ...sc }], points: [], lines: [], marks: [], style: st.style, viewScale: vs };
+          let total = 0;
+          for (const l of ['ar', 'en'] as Lang[]) {
+            const b = sh.caption ? null : inkBoundsPx(solo, l);
+            if (!b) continue;
+            const cr = st.langView?.[l];
+            const m = cr ? { minX: cr.x, minY: cr.y, maxX: cr.x + cr.w, maxY: cr.y + cr.h } : { minX: pad, minY: pad, maxX: st.canvas.w - pad, maxY: st.canvas.h - pad };
+            total += Math.max(0, m.minX - 0.05 - b.minX) + Math.max(0, m.minY - 0.05 - b.minY) + Math.max(0, b.maxX - m.maxX - 0.05) + Math.max(0, b.maxY - m.maxY - 0.05);
+          }
+          return total;
+        };
+        const cur = { scale: sh.scale, scaleX: sh.scaleX ?? 1, scaleY: sh.scaleY ?? 1 };
+        const base = overflow(cur) + 1e-6;
+        let next = want;
+        if (!sh.caption && overflow(want) > base) {
+          const from = d.ok ?? cur;
+          const mix = (t: number) => ({ scale: from.scale + (want!.scale - from.scale) * t, scaleX: from.scaleX + (want!.scaleX - from.scaleX) * t, scaleY: from.scaleY + (want!.scaleY - from.scaleY) * t });
+          let lo = 0, hi = 1;
+          for (let i = 0; i < 14; i++) { const mid = (lo + hi) / 2; if (overflow(mix(mid)) <= base) lo = mid; else hi = mid; }
+          next = mix(lo);
+        }
+        d.ok = next;
+        st.dragShape(d.id, next);
       }
     } else if(d.mode==='rotate'){
       const angle=Math.atan2(-(p.y-d.center.y),p.x-d.center.x)*180/Math.PI;

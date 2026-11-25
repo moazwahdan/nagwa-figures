@@ -47,3 +47,15 @@ export function placeLabel(anchor: Vec, outward: Vec, w: number, h: number, o: O
   return best;
 }
 
+
+/** Fixed spot for a vertex letter of a 3D solid: the one of 8 directions closest to "away from the centre". It depends only on the direction, never on the size, so resizing or adding a solid does not make letters jump around. */
+export function placeOutward(anchor: Vec, outward: Vec, w: number, h: number, vgap = 9): Vec {
+  const scale = h / 30.4, ou = norm(outward);
+  let best = { dx: 0, dy: -1 }, bestDot = -Infinity;
+  for (const dx of [-1, 0, 1]) for (const dy of [-1, 0, 1]) {
+    if (!dx && !dy) continue;
+    const d = norm({ x: dx, y: dy }), dot = d.x * ou.x + d.y * ou.y;
+    if (dot > bestDot + 1e-9) { bestDot = dot; best = { dx, dy }; }
+  }
+  return { x: anchor.x + best.dx * (w / 2 + 9 * scale), y: anchor.y + best.dy * (h / 2 + vgap * scale) };
+}
