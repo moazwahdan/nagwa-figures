@@ -187,6 +187,10 @@ export interface ConLine {
   symbol?: string;
   /** Smart force arrow: labelled F / ق, numbered when several exist. */
   kind?: 'force';
+  /** Number of arrowheads in a row at each arrow (2 = double head). */
+  heads?: 1 | 2;
+  /** Perpendicular end bars at both ends (dimension line). */
+  caps?: boolean;
   /** Force symbol drawn with a vector arrow accent (F⃗ / ق⃗). */
   vec?: boolean;
   /** Where the force symbol sits: at the arrow tip (default), middle or start of the line. */

@@ -109,6 +109,8 @@ export function parseProjectText(text: string): ProjectDocument {
     if(l.weight!==undefined&&(!finite(l.weight)||l.weight<.5||l.weight>4))fail();
     if(l.kind!==undefined&&l.kind!=='force')fail();
     if(l.color!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(l.color))fail();
+    if(l.heads!==undefined&&l.heads!==1&&l.heads!==2)fail();
+    if(l.caps!==undefined&&typeof l.caps!=='boolean')fail();
     if(l.vec!==undefined&&typeof l.vec!=='boolean')fail();
     if(l.labelPos!==undefined&&!['end','middle','start'].includes(l.labelPos))fail();
     if(l.labelSide!==undefined&&l.labelSide!==1&&l.labelSide!==-1)fail();

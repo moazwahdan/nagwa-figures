@@ -334,6 +334,13 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
       const u = world.ref(r);
       if (u) { const q = toPx(data, u); add(q.x, q.y); }
     }
+    if (l.caps) {
+      const ca = world.ref(l.a), cb = world.ref(l.b);
+      if (ca && cb) {
+        const qa = toPx(data, ca), qb = toPx(data, cb), cl = Math.hypot(qb.x - qa.x, qb.y - qa.y) || 1, nx = -(qb.y - qa.y) / cl, ny = (qb.x - qa.x) / cl, h = data.style.stroke * ARROW_TO_STROKE * 0.7;
+        for (const q of [qa, qb]) { add(q.x - nx * h, q.y - ny * h); add(q.x + nx * h, q.y + ny * h); }
+      }
+    }
     if (l.kind === 'force') {
       const fa = world.ref(l.a), fb = world.ref(l.b);
       const parts = forceSymbolParts(effectiveForceSymbol(data.lines, l), lang, data.style);

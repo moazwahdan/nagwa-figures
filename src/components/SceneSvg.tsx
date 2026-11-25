@@ -365,7 +365,9 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     const arrow=(tip:Vec,dir:Vec,key:string)=>{
       const base=add(tip,dir,-m),nn={x:-dir.y,y:dir.x};
       drawn.push(<path key={key} d={`M${tip.x} ${tip.y} L${base.x+nn.x*m*.38} ${base.y+nn.y*m*.38} L${base.x-nn.x*m*.38} ${base.y-nn.y*m*.38} Z`} fill={ink}/>);
+      if(l.heads===2){const t2=add(tip,dir,-m*.95),b2=add(t2,dir,-m);drawn.push(<path key={key+'d'} d={`M${t2.x} ${t2.y} L${b2.x+nn.x*m*.38} ${b2.y+nn.y*m*.38} L${b2.x-nn.x*m*.38} ${b2.y-nn.y*m*.38} Z`} fill={ink}/>);}
     };
+    if(l.caps){const cd=norm(sub(b,a)),cn={x:-cd.y,y:cd.x},h=m*.7;for(const [pt,k2] of [[a,'a'],[b,'b']] as [Vec,string][])drawn.push(<line key={`lc${k2}${l.id}`} x1={pt.x-cn.x*h} y1={pt.y-cn.y*h} x2={pt.x+cn.x*h} y2={pt.y+cn.y*h} {...lineStroke}/>);}
     if(l.arrow==='end'||l.arrow==='both')arrow(b,e,`lae${l.id}`);
     if(l.arrow==='start'||l.arrow==='both')arrow(a,{x:-e.x,y:-e.y},`las${l.id}`);
     if(l.arrow==='middle')arrow(add({x:(a.x+b.x)/2,y:(a.y+b.y)/2},e,m*.42),e,`lam${l.id}`);
