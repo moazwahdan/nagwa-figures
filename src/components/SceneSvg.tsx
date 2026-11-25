@@ -186,8 +186,9 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     const size=sizeFor(s.id);
     const lk = lockedFor(s.id);
     const hit = interactive ? { 'data-shape-id': s.id, style: { cursor: 'move' }, pointerEvents: 'all' as const } : {};
-    const fill = interactive ? 'rgba(0,0,0,0.001)' : 'none';
-    const shapeStroke = { ...stroke, strokeWidth: st.stroke };
+    const fill = s.fillColor ?? (interactive ? 'rgba(0,0,0,0.001)' : 'none');
+    const shapeInk = s.color ?? '#000';
+    const shapeStroke = { ...stroke, stroke: shapeInk, strokeWidth: st.stroke };
 
     if(s.caption){
       const text=s.caption[lang];
@@ -233,12 +234,12 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       if(sk.hatch&&s.params.rough===0)continue;
       const pts = sk.pts.map(mapLocal);
       const d = pts.map((p, n) => `${n ? 'L' : 'M'}${p.x} ${p.y}`).join(' ') + (sk.closed ? 'Z' : '');
-      parts.push(<path key={`sk${s.id}${i}`} d={d} fill={sk.fill ? '#000' : fill} {...shapeStroke} strokeDasharray={sk.dashed ? `${st.stroke * 4} ${st.stroke * 3}` : undefined} />);
+      parts.push(<path key={`sk${s.id}${i}`} d={d} fill={sk.fill ? shapeInk : fill} {...shapeStroke} strokeDasharray={sk.dashed ? `${st.stroke * 4} ${st.stroke * 3}` : undefined} />);
       if (sk.arrow && pts.length >= 2) {
         const b = pts[pts.length - 1], a = pts[pts.length - 2];
         const u = norm(sub(b, a)), nrm = { x: -u.y, y: u.x }, m = st.stroke * ARROW_TO_STROKE;
         const base = add(b, u, -m);
-        parts.push(<path key={`ar${s.id}${i}`} d={`M${b.x} ${b.y} L${base.x + nrm.x * m * 0.38} ${base.y + nrm.y * m * 0.38} L${base.x - nrm.x * m * 0.38} ${base.y - nrm.y * m * 0.38} Z`} fill="#000" stroke="none" />);
+        parts.push(<path key={`ar${s.id}${i}`} d={`M${b.x} ${b.y} L${base.x + nrm.x * m * 0.38} ${base.y + nrm.y * m * 0.38} L${base.x - nrm.x * m * 0.38} ${base.y - nrm.y * m * 0.38} Z`} fill={shapeInk} stroke="none" />);
       }
     }
     const pts = pl.pts;
@@ -512,7 +513,8 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
   for (const p of data.points) {
     const pos = P({ p: p.id });
     if (!pos) continue;
-    if (p.dot) dots.push(<circle key={`pd${p.id}`} cx={pos.x} cy={pos.y} r={dotR} fill="#000" />);
+    const ink = p.color ?? '#000';
+    if (p.dot) dots.push(<circle key={`pd${p.id}`} cx={pos.x} cy={pos.y} r={dotR} fill={ink} />);
     const own = ownerOfDef(data, p.def);
     const text = pointLabel(p.name, p.nameAr, lang, caseOf(own), st);
     if (p.showLabel && text) {
@@ -520,7 +522,8 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       const cen = centroidOf(own);
       const outward = cen ? sub(pos, cen) : { x: 0, y: -1 };
       const at = nzV(p.nudgeByLang?.[lang] ?? p.nudge, place(pos, Math.hypot(outward.x, outward.y) < 1e-6 ? { x: 0, y: -1 } : outward, estW(text, size), size * 0.8));
-      texts.push(<Txt key={`pl${p.id}`} pos={at} text={text} lang={lang} size={size} italic={st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`point:${p.id}`} />);
+      if (p.circled) dots.push(<circle key={`pc${p.id}`} cx={at.x} cy={at.y} r={size * 0.78} fill="#fff" stroke={ink} strokeWidth={st.stroke} />);
+      texts.push(<Txt key={`pl${p.id}`} color={ink} pos={at} text={text} lang={lang} size={size} italic={st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`point:${p.id}`} />);
     }
   }
 

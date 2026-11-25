@@ -121,6 +121,8 @@ function ConstructionList() {
                 <TextField className={p.nameAr === undefined && localizeName(p.name, 'ar', caseMode, style).includes('\uE000') ? 'con-name-ar loop' : 'con-name-ar'} dir="rtl" label={`Arabic name ${p.name || p.id}`} value={arabic} onCommit={(t) => { const next = t.trim(); patchPoint(p.id, { nameAr: next === autoArabic ? undefined : next, showLabel: p.name.trim() !== '' || next !== '' }); }} />
                 <div className="con-point-tools">
                   <label className="check tiny"><input type="checkbox" checked={p.showLabel} onChange={(e) => patchPoint(p.id, { showLabel: e.target.checked })} />name</label>
+                  <label className="check tiny"><input type="checkbox" checked={!!p.circled} onChange={(e) => patchPoint(p.id, { circled: e.target.checked })} />circle</label>
+                  <ColorSwatches label={`Colour ${p.name || p.id}`} value={p.color} onPick={(hex) => patchPoint(p.id, { color: hex })} />
                   <label className="check tiny"><input type="checkbox" checked={p.dot} onChange={(e) => patchPoint(p.id, { dot: e.target.checked })} />dot</label>
                   <button className="icon-btn danger" onClick={() => removePoint(p.id)} aria-label="Delete point">✕</button>
                 </div>
@@ -323,6 +325,9 @@ function ShapePanel({ s, style: figStyle, patch, onDelete, onDup }: { s: ShapeIn
 
       {geo.solid && <SolidControls s={s} patch={patch} />}
 
+      <div className="group-title">Colour</div>
+      <div className="field"><span>Outline</span><ColorSwatches label="Outline colour" value={s.color} onPick={(hex) => patch({ color: hex })} /></div>
+      <div className="field"><span>Fill</span><ColorSwatches label="Fill colour" value={s.fillColor} onPick={(hex) => patch({ fillColor: hex })} /></div>
       <div className="group-title">Position &amp; rotation</div>
       <div className="fields">
         <NumField label="X" value={Math.round(s.offset.x * 100) / 100} onCommit={(v) => patch({ offset: { ...s.offset, x: v } })} />

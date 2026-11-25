@@ -73,6 +73,10 @@ export interface ShapeInstance {
   namesAr?: (string | null)[];
   /** Per-shape mechanics ink multiplier. Defaults to 1. */
   mechanicsStroke?: number;
+  /** Hex colour of the outline. Missing = black. */
+  color?: string;
+  /** Hex fill colour of a closed shape. Missing = no fill. */
+  fillColor?: string;
   params: Record<string, number>;
   /** Offset from the image center, in scene units (y up). */
   offset: Vec;
@@ -151,6 +155,10 @@ export interface ConPoint {
   nameAr?: string;
   showLabel: boolean;
   dot: boolean;
+  /** Hex colour of the dot and the label. Missing = black. */
+  color?: string;
+  /** Draw the label inside a circle, like (T) or (W) in force diagrams. */
+  circled?: boolean;
   def: PointDef;
   /** When set, this point is one of the nine bbox/centre anchors of its shape. */
   anchor?: AnchorKey;

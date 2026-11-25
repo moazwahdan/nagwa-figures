@@ -54,6 +54,7 @@ export function parseProjectText(text: string): ProjectDocument {
     const def = SHAPE_DEFS.find(x => x.id === s.defId);
     if (!def || !s.params || !def.params.every(p => finite(s.params[p.key]) && s.params[p.key] >= p.min && s.params[p.key] <= p.max && (!p.options || p.options.some(o => o.value === s.params[p.key])))) fail();
     if (!SHAPE_DEFS.find(x => x.id === s.defId) || !s.params || !Object.values(s.params).every(finite) || !vec(s.offset) || !finite(s.rotation) || !finite(s.scale) || s.scale <= 0 || (s.scaleX !== undefined && (!finite(s.scaleX) || s.scaleX <= 0)) || (s.scaleY !== undefined && (!finite(s.scaleY) || s.scaleY <= 0)) || !Array.isArray(s.names) || !s.names.every((n: unknown) => typeof n === 'string') || !['upper','lower'].includes(s.caseMode) || !s.center || typeof s.center.name !== 'string' || typeof s.center.show !== 'boolean' || !s.nudge || !Object.values(s.nudge).every(vec) || !nudges(s.nudgeByLang, true)) fail();
+    for(const k of ['color','fillColor'])if(s[k]!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(s[k]))fail();
     if(s.hideSplitRightMarks!==undefined&&typeof s.hideSplitRightMarks!=='boolean')fail();
     if(def?.kind==='axes')validateAxes(s);
     else if(s.axes!==undefined)fail();
@@ -94,6 +95,10 @@ export function parseProjectText(text: string): ProjectDocument {
     for (const k of defs[f.t]) {
       if (['a','b','c','d','from','v','at','toward'].includes(k) ? !ref(f[k]) : k === 'shape' || k === 'other' ? typeof f[k] !== 'string' : k === 'mode' ? !['par','perp'].includes(f[k]) : k === 'sign' ? ![1,-1].includes(f[k]) : k === 'which' ? ![0,1].includes(f[k]) : !finite(f[k])) fail();
     }
+  }
+  for (const p of d.points) {
+    if (p.color !== undefined && !/^#[0-9a-fA-F]{6}$/.test(p.color)) fail();
+    if (p.circled !== undefined && typeof p.circled !== 'boolean') fail();
   }
   for (const l of d.lines) {
     if (!ref(l.a) || !ref(l.b) || typeof l.dashed !== 'boolean' || !l.label || typeof l.label.text !== 'string' || typeof l.label.unit !== 'boolean' || !nudges(l.nudgeByLang) || (l.nudge !== undefined && !vec(l.nudge))) fail();
