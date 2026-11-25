@@ -69,7 +69,7 @@ export function SolidSvg({data,shape:s,geometry:g,pts,lang,interactive,locked,pl
         const r=map(radial.b),u=sub(b,a),v=sub(r,a),lu=Math.hypot(u.x,u.y),lv=Math.hypot(v.x,v.y);
         if(lu>1&&lv>1){
           const k=Math.min(st.markSize,lu*0.15,lv*0.15),p={x:a.x+u.x/lu*k,y:a.y+u.y/lu*k},q={x:p.x+v.x/lv*k,y:p.y+v.y/lv*k},t={x:a.x+v.x/lv*k,y:a.y+v.y/lv*k};
-          visible.push(<polyline key="height-right" points={pointsString([p,q,t])} {...stroke} strokeWidth={st.stroke*0.8} />);
+          visible.push(<polyline key="height-right" points={pointsString([p,q,t])} {...stroke} strokeWidth={st.stroke} />);
         }
       }
     }

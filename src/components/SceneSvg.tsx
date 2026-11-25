@@ -187,7 +187,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     const lk = lockedFor(s.id);
     const hit = interactive ? { 'data-shape-id': s.id, style: { cursor: 'move' }, pointerEvents: 'all' as const } : {};
     const fill = interactive ? 'rgba(0,0,0,0.001)' : 'none';
-    const shapeStroke = { ...stroke, strokeWidth: st.stroke * (s.params.weight ?? s.mechanicsStroke ?? 1) };
+    const shapeStroke = { ...stroke, strokeWidth: st.stroke };
 
     if(s.caption){
       const text=s.caption[lang];
@@ -236,7 +236,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       parts.push(<path key={`sk${s.id}${i}`} d={d} fill={sk.fill ? '#000' : fill} {...shapeStroke} strokeDasharray={sk.dashed ? `${st.stroke * 4} ${st.stroke * 3}` : undefined} />);
       if (sk.arrow && pts.length >= 2) {
         const b = pts[pts.length - 1], a = pts[pts.length - 2];
-        const u = norm(sub(b, a)), nrm = { x: -u.y, y: u.x }, m = st.stroke * ARROW_TO_STROKE * (s.params.weight ?? s.mechanicsStroke ?? 1);
+        const u = norm(sub(b, a)), nrm = { x: -u.y, y: u.x }, m = st.stroke * ARROW_TO_STROKE;
         const base = add(b, u, -m);
         parts.push(<path key={`ar${s.id}${i}`} d={`M${b.x} ${b.y} L${base.x + nrm.x * m * 0.38} ${base.y + nrm.y * m * 0.38} L${base.x - nrm.x * m * 0.38} ${base.y - nrm.y * m * 0.38} Z`} fill="#000" stroke="none" />);
       }
@@ -287,7 +287,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
         const a = add(v, u1, m);
         const b = add(a, u2, m);
         const c = add(v, u2, m);
-        drawn.push(<path data-right-mark={`${s.id}:${i}`} key={`rm${s.id}${i}`} d={`M${a.x} ${a.y} L${b.x} ${b.y} L${c.x} ${c.y}`} fill="none" stroke="#000" strokeWidth={st.stroke * 0.8} />);
+        drawn.push(<path data-right-mark={`${s.id}:${i}`} key={`rm${s.id}${i}`} d={`M${a.x} ${a.y} L${b.x} ${b.y} L${c.x} ${c.y}`} fill="none" stroke="#000" strokeWidth={st.stroke} />);
       }
 
       const al = s.angles[i];
@@ -298,7 +298,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
           const a = add(v, u1, r);
           const b = add(v, u2, r);
           const cross = u1.x * u2.y - u1.y * u2.x;
-          drawn.push(<path key={`arc${s.id}${i}`} d={`M${a.x} ${a.y} A${r} ${r} 0 0 ${cross > 0 ? 1 : 0} ${b.x} ${b.y}`} fill="none" stroke="#000" strokeWidth={st.stroke * 0.8} />);
+          drawn.push(<path key={`arc${s.id}${i}`} d={`M${a.x} ${a.y} A${r} ${r} 0 0 ${cross > 0 ? 1 : 0} ${b.x} ${b.y}`} fill="none" stroke="#000" strokeWidth={st.stroke} />);
         }
         const text = localizeText(al.text.trim() || `${formatNumber(angles[i])}°`, lang, st);
         const ext = Math.abs(bis.x) * estW(text, size * 0.8) * 0.5 + Math.abs(bis.y) * size * 0.4;
@@ -337,7 +337,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       if (al.arc) {
         const a = add(v, u1, r), bpt = add(v, u2, r);
         const cross = u1.x * u2.y - u1.y * u2.x;
-        drawn.push(<path key={`warc${s.id}`} d={`M${a.x} ${a.y} A${r} ${r} 0 0 ${cross > 0 ? 1 : 0} ${bpt.x} ${bpt.y}`} fill="none" stroke="#000" strokeWidth={st.stroke * 0.8} />);
+        drawn.push(<path key={`warc${s.id}`} d={`M${a.x} ${a.y} A${r} ${r} 0 0 ${cross > 0 ? 1 : 0} ${bpt.x} ${bpt.y}`} fill="none" stroke="#000" strokeWidth={st.stroke} />);
       }
       const trueDeg = Math.abs((Math.atan2(upper.y - lower.y, upper.x - lower.x) * 180) / Math.PI);
       const text = localizeText(al.text.trim() || `${formatNumber(trueDeg)}°`, lang, st);
@@ -351,7 +351,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
   for (const { l, a, b } of conLines) {
     const e=norm(sub(b,a)),nrm={x:-e.y,y:e.x},dash=l.dashed?'9 7':undefined;
     const ink=l.color??'#000';
-    const lineStroke={...stroke,stroke:ink,strokeWidth:st.stroke*(l.weight??1)};
+    const lineStroke={...stroke,stroke:ink,strokeWidth:st.stroke};
     if(l.curve==='arc'){
       const theta=(l.arcFraction??.25)*Math.PI*2,chord=Math.hypot(b.x-a.x,b.y-a.y);
       const radius=chord/(2*Math.sin(Math.min(theta,Math.PI*2-theta)/2)||1);
@@ -359,7 +359,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     }else if(l.curve==='spline'){
       drawn.push(<path key={`cl${l.id}`} d={catmull(splinePts(l,a,b))} fill="none" {...lineStroke} strokeDasharray={dash} strokeLinejoin="round"/>);
     }else drawn.push(<line key={`cl${l.id}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y} {...lineStroke} strokeDasharray={dash} />);
-    const m=st.stroke*ARROW_TO_STROKE*(l.weight??1);
+    const m=st.stroke*ARROW_TO_STROKE;
     const arrow=(tip:Vec,dir:Vec,key:string)=>{
       const base=add(tip,dir,-m),nn={x:-dir.y,y:dir.x};
       drawn.push(<path key={key} d={`M${tip.x} ${tip.y} L${base.x+nn.x*m*.38} ${base.y+nn.y*m*.38} L${base.x-nn.x*m*.38} ${base.y-nn.y*m*.38} Z`} fill={ink}/>);
@@ -409,7 +409,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
         const hx=m.side*(Math.SQRT1_2),hy=Math.SQRT1_2;
         for(let i=.4;i<4.1;i+=.55){
           const p=add(at,up,k*i);
-          drawn.push(<line key={`ath${m.id}${i}`} x1={p.x} y1={p.y} x2={p.x+hx*k*.7} y2={p.y+hy*k*.7} {...stroke} strokeWidth={st.stroke*.75}/>);
+          drawn.push(<line key={`ath${m.id}${i}`} x1={p.x} y1={p.y} x2={p.x+hx*k*.7} y2={p.y+hy*k*.7} {...stroke} strokeWidth={st.stroke}/>);
         }
       }else if(m.item==='hinge'){
         const n=sit('down'),left=add(add(at,n,k*1.4),e,-k*.9),right=add(add(at,n,k*1.4),e,k*.9);
@@ -423,7 +423,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       const a = add(at, u1, r), b = add(at, u2, r), cross = u1.x * u2.y - u1.y * u2.x;
       const arc = `A${r} ${r} 0 0 ${cross > 0 ? 1 : 0} ${b.x} ${b.y}`;
       if (m.fill) drawn.push(<path key={`mkf${m.id}`} d={`M${at.x} ${at.y} L${a.x} ${a.y} ${arc} Z`} fill={ink} fillOpacity={0.4} stroke="none" />);
-      drawn.push(<path key={`mk${m.id}`} d={`M${a.x} ${a.y} ${arc}`} fill="none" stroke={ink} strokeWidth={st.stroke * 0.8} />);
+      drawn.push(<path key={`mk${m.id}`} d={`M${a.x} ${a.y} ${arc}`} fill="none" stroke={ink} strokeWidth={st.stroke} />);
       if (m.text.trim()) {
         const bis = norm(add(u1, u2)), fs = data.style.fontSize * 0.9;
         const dir = Math.hypot(bis.x, bis.y) < 1e-6 ? { x: -u1.y, y: u1.x } : bis;
@@ -448,7 +448,7 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
         const d1=mul3(unit3(sub3(sa.position,sp.position)),length),d2=mul3(unit3(sub3(sb.position,sp.position)),length);
         a=map(add3(sp.position,d1));b=map(add3(add3(sp.position,d1),d2));c=map(add3(sp.position,d2));
       }
-      drawn.push(<path key={`mk${m.id}`} d={`M${a.x} ${a.y} L${b.x} ${b.y} L${c.x} ${c.y}`} fill="none" stroke="#000" strokeWidth={st.stroke * 0.8} />);
+      drawn.push(<path key={`mk${m.id}`} d={`M${a.x} ${a.y} L${b.x} ${b.y} L${c.x} ${c.y}`} fill="none" stroke="#000" strokeWidth={st.stroke} />);
     } else if ('circle' in m) {
       const s = data.shapes.find((x) => x.id === m.circle);
       const geo = s ? placeShape(s, G, data.canvas).geo : null;

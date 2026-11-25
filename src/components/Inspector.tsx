@@ -158,7 +158,6 @@ function ConstructionList() {
                   <label className="check tiny"><input type="checkbox" checked={l.label.unit} onChange={(e) => patchLine(l.id, { label: { ...l.label, unit: e.target.checked } })} />cm</label>
                   <label className="check tiny"><input type="checkbox" checked={l.dashed} onChange={(e) => patchLine(l.id, { dashed: e.target.checked })} />dash</label>
                   <select aria-label={`Arrow on ${nm(l.a)}${nm(l.b)}`} value={l.arrow??'none'} onChange={e=>patchLine(l.id,{arrow:e.target.value as typeof l.arrow})}><option value="none">no arrow</option><option value="start">start</option><option value="end">end</option><option value="both">both</option><option value="middle">middle</option></select>
-                  <label className="field tiny"><span>weight</span><input aria-label={`Line weight ${nm(l.a)}${nm(l.b)}`} type="number" min={.5} max={4} step={.1} value={l.weight??1} onChange={e=>patchLine(l.id,{weight:Math.max(.5,Math.min(4,Number(e.target.value)||1))})}/></label>
                   <ColorSwatches label={`Colour ${nm(l.a)}${nm(l.b)}`} value={l.color} onPick={(hex)=>patchLine(l.id,{color:hex})}/>
                 </div>
               </div>

@@ -32,9 +32,9 @@ export function AxesSvg({data,shape:s,lang,interactive,lockAll,tool}:{data:Scene
     const scale=axisTick(a,r.key);
     if(a.grid||a.numbers)for(const mark of axisTickMarks(r.min,r.max,scale.spacing,scale.steps)){
       const at=P({...zero,[r.key]:mark.geo});
-      if(a.dimension===2&&a.grid){const other=r.key==='x'?'y':'x',lo=P({...zero,[r.key]:mark.geo,[other]:s.params[other+'Min']}),hi=P({...zero,[r.key]:mark.geo,[other]:s.params[other+'Max']});grid.push(<line key={r.key+mark.geo} data-axis-grid={r.key} x1={lo.x} y1={lo.y} x2={hi.x} y2={hi.y} stroke="#c9d0d5" strokeWidth={stroke*.32}/>);}
+      if(a.dimension===2&&a.grid){const other=r.key==='x'?'y':'x',lo=P({...zero,[r.key]:mark.geo,[other]:s.params[other+'Min']}),hi=P({...zero,[r.key]:mark.geo,[other]:s.params[other+'Max']});grid.push(<line key={r.key+mark.geo} data-axis-grid={r.key} x1={lo.x} y1={lo.y} x2={hi.x} y2={hi.y} stroke="#c9d0d5" strokeWidth={stroke}/>);}
       if(a.numbers){
-        ticks.push(<line key={r.key+'t'+mark.geo} data-axis-tick={r.key} x1={at.x-n.x*4*ui} y1={at.y-n.y*4*ui} x2={at.x+n.x*4*ui} y2={at.y+n.y*4*ui} stroke="#000" strokeWidth={stroke*.65}/>);
+        ticks.push(<line key={r.key+'t'+mark.geo} data-axis-tick={r.key} x1={at.x-n.x*4*ui} y1={at.y-n.y*4*ui} x2={at.x+n.x*4*ui} y2={at.y+n.y*4*ui} stroke="#000" strokeWidth={stroke}/>);
         if(!axisRayHidden(a,r.key,mark.geo)){
           const size=fs*.64*nScale;
           texts.push(txt(`tick:${r.key}:${mark.value}`,(a.dimension===2&&r.key==='y'||a.dimension===3&&r.key==='z')?{x:at.x-(size*.85+5*ui),y:at.y}:{x:at.x,y:at.y+(size*.85+5*ui)},tickText(mark.value,r.key),size,'tick'));
