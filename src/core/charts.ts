@@ -8,7 +8,7 @@ export function defaultChart(kind: ChartKind): ChartSettings {
   const base = {
     title: T('', ''), xTitle: T('', ''), yTitle: T('', ''),
     xMin: 0, xMax: 6, xStep: 1, yMin: 0, yMax: 10, yStep: 1,
-    grid: 'none' as const, gridAt: 'center' as const, arrows: false, showAxisNames: false, showNumbers: true,
+    grid: 'none' as const, gridAt: 'center' as const, arrows: false, showAxisNames: false, showNumbers: true, frame: false,
     barWidth: 0.5, color: '#62AADF', lineConnect: true, markers: true,
   };
   if (kind === 'bar') {
@@ -62,7 +62,8 @@ export function validateChart(c: unknown): asserts c is ChartSettings {
   if (s!.xMax <= s!.xMin || s!.yMax <= s!.yMin || s!.xStep <= 0 || s!.yStep <= 0 || s!.barWidth <= 0 || s!.barWidth > 1) bad();
   if ((s!.xMax - s!.xMin) / s!.xStep > 200 || (s!.yMax - s!.yMin) / s!.yStep > 200) throw new Error('Too many ticks: increase the step.');
   if (!['none', 'horizontal', 'full'].includes(s!.grid) || !['center', 'edge'].includes(s!.gridAt) || !isHexColor(s!.color)) bad();
-  for (const k of ['arrows', 'showAxisNames', 'showNumbers', 'lineConnect', 'markers'] as const) if (typeof s![k] !== 'boolean') bad();
+  if (s!.xLabelMax !== undefined && !finite(s!.xLabelMax)) bad();
+  for (const k of ['arrows', 'showAxisNames', 'showNumbers', 'frame', 'lineConnect', 'markers'] as const) if (typeof s![k] !== 'boolean') bad();
   for (const p of s!.points as ChartPoint[]) {
     if (!finite(p.x) || !finite(p.y)) bad();
     if (p.color !== undefined && !isHexColor(p.color)) bad();

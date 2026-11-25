@@ -84,10 +84,10 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
     if (c.lineConnect && pts.length > 1) out.line = pts;
     if (c.markers) c.points.forEach((p, i) => { if (p.marker !== false) out.dots.push({ c: pts[i], r: Math.max(stroke * DOT_TO_STROKE, fs * 0.2), color: p.color ?? c.color }); });
   } else {
-    const r = Math.max(stroke * DOT_TO_STROKE, fs * 0.3), base = P(0, B);
+    const r = Math.max(stroke * DOT_TO_STROKE, fs * 0.24), base = P(0, B);
     for (const p of c.points) for (let k = 0; k < Math.round(p.y); k++) {
       const q = P(mapX(p.x), B);
-      out.dots.push({ c: pt({ x: q.x + ey.x * (r * 2.2 + k * r * 2.6), y: q.y + ey.y * (r * 2.2 + k * r * 2.6) }), r, color: p.color ?? c.color });
+      out.dots.push({ c: pt({ x: q.x + ey.x * (r * 2.4 + k * r * 4.6), y: q.y + ey.y * (r * 2.4 + k * r * 4.6) }), r, color: p.color ?? c.color });
     }
     void base;
     for (const d of out.dots) { pt({ x: d.c.x - d.r, y: d.c.y - d.r }); pt({ x: d.c.x + d.r, y: d.c.y + d.r }); }
@@ -110,6 +110,8 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
     text('ct:axis:y', add(yTip, ey, fs * 0.8), lang === 'ar' ? 'ص' : 'y', fs, { italic: true });
   }
 
+  if (c.frame) for (const [a, b] of [[[L, B], [R, B]], [[R, B], [R, Tp]], [[R, Tp], [L, Tp]], [[L, Tp], [L, B]]] as const) out.axes.push({ a: pt(P(a[0], a[1])), b: pt(P(b[0], b[1])) });
+
   /* Ticks and numbers. */
   const oneZero = c.kind === 'line' && c.xMin === 0 && c.yMin === 0;
   let yLabelW = 0;
@@ -124,7 +126,7 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   if (!bar) for (const v of xTicks) {
     const a = P(mapX(v), B);
     out.ticks.push({ a: pt(a), b: pt(add(a, ey, -5 * ui)) });
-    if (!c.showNumbers || (oneZero && v === 0)) continue;
+    if (!c.showNumbers || (oneZero && v === 0) || (c.xLabelMax !== undefined && v > c.xLabelMax + 1e-9)) continue;
     text(`ct:x:${v}`, { x: a.x, y: a.y + tickSize * 0.85 + 8 * ui }, numText(v, lang), tickSize);
   }
   if (oneZero && c.showNumbers) text('ct:zero', { x: xa.x - tickSize * 0.9, y: xa.y + tickSize * 0.9 + 4 * ui }, numText(0, lang), tickSize);

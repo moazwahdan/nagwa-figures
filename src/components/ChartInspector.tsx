@@ -68,6 +68,8 @@ export function ChartInspector({ s }: { s: ShapeInstance }) {
     {!dot && <label className="field"><span>Grid</span><select aria-label="Grid" value={c.grid} onChange={(e) => patch({ grid: e.target.value as ChartSettings['grid'] })}><option value="none">None</option><option value="horizontal">Horizontal lines</option><option value="full">Full grid</option></select></label>}
     {bar && c.grid === 'full' && <label className="field"><span>Vertical lines</span><select aria-label="Vertical grid position" value={c.gridAt} onChange={(e) => patch({ gridAt: e.target.value as ChartSettings['gridAt'] })}><option value="center">Through bar centres</option><option value="edge">Between bars</option></select></label>}
     <label className="check"><input type="checkbox" checked={c.showNumbers} onChange={(e) => patch({ showNumbers: e.target.checked }, true)} />Numbers on axes</label>
+    <label className="check"><input type="checkbox" checked={c.frame} onChange={(e) => patch({ frame: e.target.checked }, true)} />Frame around the plot</label>
+    {!bar && <label className="field"><span>Last x number shown</span><Num label="Last x number" value={c.xLabelMax ?? c.xMax} onCommit={(n) => patch({ xLabelMax: n >= c.xMax ? undefined : n })} /></label>}
     {!bar && <label className="check"><input type="checkbox" checked={c.arrows} onChange={(e) => patch({ arrows: e.target.checked }, true)} />Arrow heads</label>}
     {line && <label className="check"><input type="checkbox" checked={c.showAxisNames} onChange={(e) => patch({ showAxisNames: e.target.checked }, true)} />Axis names (x, y / س، ص)</label>}
     {line && <label className="check"><input type="checkbox" checked={c.lineConnect} onChange={(e) => patch({ lineConnect: e.target.checked })} />Connect points</label>}

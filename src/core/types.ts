@@ -278,6 +278,10 @@ export interface ChartSettings {
   /** Letters x / y (س / ص) at the arrow tips. */
   showAxisNames: boolean;
   showNumbers: boolean;
+  /** Black frame around the plot area. */
+  frame: boolean;
+  /** Hide x tick numbers beyond this value (the grid keeps going). Omitted = all numbers. */
+  xLabelMax?: number;
   /** Bar width as a fraction of its slot. */
   barWidth: number;
   /** Default colour of bars / line / dots. */

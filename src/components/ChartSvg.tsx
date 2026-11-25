@@ -14,7 +14,7 @@ export function ChartSvg({ data, shape: s, lang, interactive, lockAll }: { data:
     <g data-chart={s.chart!.kind}>
       {interactive && <rect data-shape-id={s.id} x={x0 - 10} y={y0 - 10} width={Math.max(...xs) - x0 + 20} height={Math.max(...ys) - y0 + 20} fill="transparent" pointerEvents="all" />}
       <g pointerEvents="none">
-        {L.grid.map((g, i) => seg(g, i, GRID_COLOR, stroke * 0.5, { 'data-chart-grid': '' }))}
+        {L.grid.map((g, i) => seg(g, i, GRID_COLOR, stroke * 0.7, { 'data-chart-grid': '' }))}
         {L.bars.map((b, i) => <polygon key={'b' + i} data-chart-bar={i} points={b.pts.map((p) => `${p.x},${p.y}`).join(' ')} fill={b.fill} stroke={INK_COLOR} strokeWidth={stroke * 0.7} strokeLinejoin="miter" />)}
         {L.line && <polyline data-chart-line="" points={L.line.map((p) => `${p.x},${p.y}`).join(' ')} fill="none" stroke={L.lineColor} strokeWidth={stroke * 0.85} strokeLinejoin="round" strokeLinecap="round" />}
         {L.axes.map((g, i) => seg(g, i, '#000', stroke, { 'data-chart-axis': '' }))}
