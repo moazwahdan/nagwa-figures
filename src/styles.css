@@ -523,7 +523,7 @@ math-field.figure-math[lang="ar"]{direction:rtl !important;text-align:right !imp
 
 /* ---------- roomier side panels on wide screens ---------- */
 @media (min-width: 1200px) {
-  .workspace { grid-template-columns: clamp(300px, 21vw, 420px) minmax(0, 1fr) clamp(360px, 26vw, 520px); }
+  .workspace { grid-template-columns: clamp(225px, 15.75vw, 315px) minmax(0, 1fr) clamp(270px, 19.5vw, 390px); }
   .sidebar { padding: 14px 14px 0; }
   .inspector { padding: 22px 20px; }
   .sidebar, .inspector { font-size: 13px; line-height: 1.45; }
@@ -541,4 +541,6 @@ math-field.figure-math[lang="ar"]{direction:rtl !important;text-align:right !imp
   .sidebar-scroll .grid { gap: 12px; }
   .stage { padding: 12px 16px; gap: 12px; }
   .stage-grid { gap: 14px; }
+  .app .stage.stage > .stage-grid.single-canvas:not(.free-stage) { min-height: 0; }
+  .single-canvas .preview-cell:not(.free) { flex: 0 0 auto; width: 100%; max-height: calc(100vh - 270px); }
 }

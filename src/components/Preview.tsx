@@ -535,7 +535,7 @@ export function Preview({ lang, zoom = 1 }: { lang: Lang; zoom?: number }) {
         <span className={`badge badge-${lang}`}>{lang.toUpperCase()}</span>
         {title}
       </div>
-      <div className={`preview-cell${zoom > 1 ? ' free' : ''}`} ref={cell} onDragStart={(e) => e.preventDefault()}>
+      <div className={`preview-cell${zoom > 1 ? ' free' : ''}`} ref={cell} style={zoom > 1 ? undefined : { aspectRatio: `${crop?.w ?? canvas.w} / ${crop?.h ?? canvas.h}` }} onDragStart={(e) => e.preventDefault()}>
         <div
           className={`frame ${tool || axesTool ? 'tool-active' : ''}`}
           ref={svgWrap}
