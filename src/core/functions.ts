@@ -5,6 +5,25 @@ function tickOf(a: AxesSettings | undefined, key: 'x' | 'y') {
   const steps = t?.steps && t.steps > 0 ? t.steps : a?.numberStep && a.numberStep > 0 ? a.numberStep : spacing;
   return { spacing, steps };
 }
+/** Keep the part of a sampled curve between x=lo and x=hi, with exact (interpolated) end points. */
+export function clipRange(pts: { x: number; y: number }[], lo: number, hi: number): { x: number; y: number }[] {
+  const out: { x: number; y: number }[] = [];
+  const at = (p: { x: number; y: number }, q: { x: number; y: number }, x: number) => ({ x, y: q.x === p.x ? p.y : p.y + (q.y - p.y) * (x - p.x) / (q.x - p.x) });
+  for (let i = 0; i < pts.length; i++) {
+    const p = pts[i];
+    if (i > 0) {
+      const o = pts[i - 1];
+      if (o.x < lo && p.x > lo) out.push(at(o, p, lo));
+      if (o.x < hi && p.x > hi) out.push(at(o, p, hi));
+    }
+    if (p.x >= lo - 1e-9 && p.x <= hi + 1e-9) out.push(p);
+  }
+  return out.sort((u, v) => u.x - v.x);
+}
+
+/** Factor between the x value a function sees and the number printed on the X axis (π when the axis unit is π). */
+export function xUnit(a: AxesSettings | undefined) { return unitX(a); }
+
 function unitX(a: AxesSettings | undefined) {
   if (!a || !(a.tickUnit ?? '').trim()) return 1;
   if (a.tickUnitOn !== undefined && !a.tickUnitOn.includes('x')) return 1;
@@ -190,6 +209,12 @@ export function compileFunction(text: string): Compiled {
 }
 
 /** A constant expression such as -pi, 2*pi or 3.5 (used for domain ends). */
+/** A shaded-area bound typed by the user: plain numbers are axis label values (0.5 on a π axis = ½π); an expression with pi is taken literally. Stored as the real x the curve uses, so it keeps its place when spacing or the π unit change. */
+export function evalAreaBound(text: string, axes: AxesSettings | undefined, label: string): number {
+  const v = evalConstant(text, label);
+  return /pi|π/i.test(text) ? v : v * unitX(axes);
+}
+
 export function evalConstant(text: string, label = 'Value'): number {
   const c = compileFunction(text);
   if (c.usesX) throw new Error(`${label} cannot contain x.`);

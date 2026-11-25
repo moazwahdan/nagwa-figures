@@ -36,7 +36,7 @@ interface Props {
   hot?: StepKind | null;
   picks?: Target[];
   linkPicks?: boolean;
-  angleGuide?: { originPx: Vec; tipPx: Vec; rays: { angle: number; tip: Vec }[] } | null;
+  angleGuide?: { originPx: Vec; tipPx: Vec; rays: { angle: number; tip: Vec }[]; path?: Vec[] } | null;
   lockAll?: boolean;
   /** extra CSS (embedded @font-face when exporting) */
   css?: string;
@@ -771,7 +771,9 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
       {angleGuide && (
         <g pointerEvents="none" stroke="#4f6bed" strokeWidth={1.4 * ui} fill="none" strokeDasharray={`${7 * ui} ${6 * ui}`}>
           {angleGuide.rays.map(r => <line key={r.angle} x1={angleGuide.originPx.x} y1={angleGuide.originPx.y} x2={r.tip.x} y2={r.tip.y} strokeOpacity={0.45} />)}
-          <line x1={angleGuide.originPx.x} y1={angleGuide.originPx.y} x2={angleGuide.tipPx.x} y2={angleGuide.tipPx.y} strokeWidth={2 * ui} strokeDasharray={`${5 * ui} ${4 * ui}`} />
+          {angleGuide.path && angleGuide.path.length >= 2
+            ? <path d={catmull(angleGuide.path)} fill="none" strokeWidth={2 * ui} strokeDasharray={`${5 * ui} ${4 * ui}`} strokeLinejoin="round" />
+            : <line x1={angleGuide.originPx.x} y1={angleGuide.originPx.y} x2={angleGuide.tipPx.x} y2={angleGuide.tipPx.y} strokeWidth={2 * ui} strokeDasharray={`${5 * ui} ${4 * ui}`} />}
           <circle cx={angleGuide.tipPx.x} cy={angleGuide.tipPx.y} r={5 * ui} fill="#4f6bed" stroke="none" />
         </g>
       )}

@@ -337,7 +337,7 @@ export function Preview({ lang, zoom = 1 }: { lang: Lang; zoom?: number }) {
   };
 
   const hover = useRef<Vec | null>(null);
-  const [guide, setGuide] = useState<{ originPx: Vec; tipPx: Vec; rays: { angle: number; tip: Vec }[]} | null>(null);
+  const [guide, setGuide] = useState<{ originPx: Vec; tipPx: Vec; rays: { angle: number; tip: Vec }[]; path?: Vec[] } | null>(null);
   const refreshGuide = useCallback((shift: boolean) => {
     const st = useStore.getState();
     const p = hover.current;
@@ -348,19 +348,25 @@ export function Preview({ lang, zoom = 1 }: { lang: Lang; zoom?: number }) {
     const origin = targetScenePos(data, last);
     if (!origin) { setGuide(null); return; }
     const originPx = toPx(data, origin);
+    // smooth-curve tool: preview the whole curve through every picked point and the pointer
+    const curvePath = (tip: Vec): Vec[] | undefined => {
+      if (st.tool !== 'polyline-curve') return undefined;
+      const px = st.picks.map((t) => { const sp = targetScenePos(data, t); return sp ? toPx(data, sp) : null; });
+      return px.every(Boolean) ? [...(px as Vec[]), tip] : undefined;
+    };
     const highlighted = nearestHotPoint(svgWrap.current, p);
     if (highlighted) {
-      setGuide({ originPx, tipPx: highlighted, rays: [] });
+      setGuide({ originPx, tipPx: highlighted, rays: [], path: curvePath(highlighted) });
       return;
     }
     if (shift && snapTools) {
       const g = cardinalGuide(data, origin, p, true, extraGuideAngles(data, last));
-      setGuide({ originPx: g.originPx, tipPx: g.tipPx, rays: g.rays });
+      setGuide({ originPx: g.originPx, tipPx: g.tipPx, rays: g.rays, path: curvePath(g.tipPx) });
       return;
     }
     const open = !!TOOL_BY_ID[st.tool]?.openEnded || st.picks.length === 1;
     if (!open) { setGuide(null); return; }
-    setGuide({ originPx, tipPx: p, rays: [] });
+    setGuide({ originPx, tipPx: p, rays: [], path: curvePath(p) });
   }, [lang]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Shift') refreshGuide(e.type === 'keydown'); };
