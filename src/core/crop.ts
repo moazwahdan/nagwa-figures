@@ -225,7 +225,7 @@ function shapeObstacles(data: SceneData): Obstacles {
 /** Axis-aligned ink of shapes, constructions and this language's drawn letters. */
 export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | null {
   const data = dataForLang(rawData, lang);
-  if (!data.shapes.length) return null;
+  if (!data.shapes.length && !data.points.length && !data.lines.length && !data.marks.length) return null;
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   const add = (x: number, y: number) => {
     if (!Number.isFinite(x) || !Number.isFinite(y)) return;

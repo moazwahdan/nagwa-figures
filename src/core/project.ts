@@ -109,7 +109,7 @@ export function parseProjectText(text: string): ProjectDocument {
     if(l.weight!==undefined&&(!finite(l.weight)||l.weight<.5||l.weight>4))fail();
     if(l.kind!==undefined&&l.kind!=='force')fail();
     if(l.color!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(l.color))fail();
-    if(l.symbol!==undefined&&!/^(none|F([1-9]|1\d|20)?|[A-Z])$/.test(l.symbol))fail();
+    if(l.symbol!==undefined&&!/^(none|F([1-9]|1\d|20)?|[A-Z]|c:[^|]{0,8}\|[^|]{0,8})$/.test(l.symbol))fail();
   }
   for (const m of d.marks) {
     if (!['right','angle','tick','arrow','attachment'].includes(m.kind)) fail();

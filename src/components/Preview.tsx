@@ -542,7 +542,7 @@ export function Preview({ lang, zoom = 1 }: { lang: Lang; zoom?: number }) {
           onDoubleClick={onDouble}
         >
           <SceneSvg axesTool={axesTool} data={data} lang={lang} interactive selectedId={selectedId} hot={step} picks={picks} linkPicks={tool !== 'rel-point'} angleGuide={tool === 'rel-point' ? null : guide} lockAll={lockAll} className="scene-svg" crop={crop} />
-          {shapes.length === 0 && <div className="empty-hint">Pick a shape from the left panel</div>}
+          {shapes.length === 0 && !useStore.getState().lines.length && !useStore.getState().points.length && <div className="empty-hint">Pick a shape from the left panel</div>}
         </div>
       </div>
     </div>

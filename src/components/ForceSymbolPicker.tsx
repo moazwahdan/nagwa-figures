@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { AR_MAP, toArabicDigits } from '../core/labels';
-import { FORCE_SYMBOL_CHOICES, LETTER_SYMBOL_CHOICES } from '../core/forceSymbols';
+import { FORCE_SYMBOL_CHOICES, LETTER_SYMBOL_CHOICES, customSymbol } from '../core/forceSymbols';
 
 /** F with a true subscript: F₂ / ق٢ */
 export function SymbolText({ sym }: { sym: string }) {
   if (sym === 'none') return <>No symbol</>;
+  if (sym.startsWith('c:')) return <>{sym.slice(2).replace('|', ' / ')}</>;
   const m = /^F(\d+)?$/.exec(sym);
   if (!m) return <>{AR_MAP[sym] ? `${sym} / ${AR_MAP[sym]}` : sym}</>;
   return <>F{m[1] && <sub>{m[1]}</sub>} / ق{m[1] && <sub>{toArabicDigits(m[1])}</sub>}</>;
@@ -12,6 +13,7 @@ export function SymbolText({ sym }: { sym: string }) {
 
 export function ForceSymbolPicker({ value, auto, onPick, label }: { value?: string; auto: string; onPick: (sym: string | undefined) => void; label: string }) {
   const [open, setOpen] = useState(false);
+  const [en, setEn] = useState(''), [ar, setAr] = useState('');
   const choose = (v: string | undefined) => { setOpen(false); onPick(v); };
   const chip = (key: string, v: string | undefined, content: React.ReactNode, on: boolean) => (
     <button key={key} type="button" className={`chip sm ${on ? 'on' : ''}`} aria-pressed={on} onClick={() => choose(v)}>{content}</button>
@@ -27,6 +29,11 @@ export function ForceSymbolPicker({ value, auto, onPick, label }: { value?: stri
           {chip('none', 'none', <>No symbol</>, value === 'none')}
           {FORCE_SYMBOL_CHOICES.map((c) => chip(c, c, <SymbolText sym={c} />, value === c))}
           {LETTER_SYMBOL_CHOICES.map((c) => chip(c, c, <SymbolText sym={c} />, value === c))}
+          <div style={{ display: 'flex', gap: 4, width: '100%', alignItems: 'center' }}>
+            <input aria-label="Custom symbol English" dir="ltr" maxLength={8} placeholder="EN (R, T…)" value={en} onChange={(e) => setEn(e.target.value)} style={{ width: 80 }} />
+            <input aria-label="Custom symbol Arabic" dir="rtl" maxLength={8} placeholder="AR (ح، ر…)" value={ar} onChange={(e) => setAr(e.target.value)} style={{ width: 80 }} />
+            <button type="button" className="btn ghost" disabled={!en.trim() && !ar.trim()} onClick={() => choose(customSymbol(en, ar))}>Use</button>
+          </div>
         </div>
       )}
     </div>

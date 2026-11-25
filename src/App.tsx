@@ -77,7 +77,7 @@ function ExportMenu() {
   const [ratio, setRatio] = useState(1);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
-  const empty = useStore((s) => s.shapes.length === 0);
+  const empty = useStore((s) => s.shapes.length === 0 && s.points.length === 0 && s.lines.length === 0 && s.marks.length === 0);
 
   const run = async () => {
     setBusy(true);
