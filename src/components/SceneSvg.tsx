@@ -415,6 +415,21 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
         const n=sit('down'),left=add(add(at,n,k*1.4),e,-k*.9),right=add(add(at,n,k*1.4),e,k*.9);
         drawn.push(<path key={`att${m.id}`} d={`M${at.x} ${at.y} L${left.x} ${left.y} L${right.x} ${right.y} Z`} fill="#000" {...stroke}/>);
       }
+    } else if (m.kind === 'angle') {
+      const at = P(m.at), pa = P(m.a), pb = P(m.b);
+      if (!at || !pa || !pb) continue;
+      const u1 = norm(sub(pa, at)), u2 = norm(sub(pb, at));
+      const r = arcR * (m.size ?? 1), ink = m.color ?? '#000';
+      const a = add(at, u1, r), b = add(at, u2, r), cross = u1.x * u2.y - u1.y * u2.x;
+      const arc = `A${r} ${r} 0 0 ${cross > 0 ? 1 : 0} ${b.x} ${b.y}`;
+      if (m.fill) drawn.push(<path key={`mkf${m.id}`} d={`M${at.x} ${at.y} L${a.x} ${a.y} ${arc} Z`} fill={ink} fillOpacity={0.4} stroke="none" />);
+      drawn.push(<path key={`mk${m.id}`} d={`M${a.x} ${a.y} ${arc}`} fill="none" stroke={ink} strokeWidth={st.stroke * 0.8} />);
+      if (m.text.trim()) {
+        const bis = norm(add(u1, u2)), fs = data.style.fontSize * 0.9;
+        const dir = Math.hypot(bis.x, bis.y) < 1e-6 ? { x: -u1.y, y: u1.x } : bis;
+        const ext = Math.abs(dir.x) * estW(m.text, fs) * 0.5 + Math.abs(dir.y) * fs * 0.4;
+        texts.push(<Txt key={`mt${m.id}`} color={ink} pos={add(at, dir, r + ext + 5 * ui)} text={m.text} lang="en" size={fs} interactive={false} locked />);
+      }
     } else if (m.kind === 'right') {
       const at = P(m.at);
       const pa = P(m.a);

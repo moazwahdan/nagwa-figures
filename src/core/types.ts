@@ -185,6 +185,8 @@ export interface ConLine {
 /** Marks drawn on the figure: right-angle squares, equal-side ticks, parallel arrows. */
 export type ConMark =
   | { id: string; kind: 'right'; at: Ref; a: Ref; b: Ref }
+  /** Angle arc at `at` between rays to `a` and `b`, optionally coloured, filled and labelled. */
+  | { id: string; kind: 'angle'; at: Ref; a: Ref; b: Ref; text: string; color?: string; fill?: boolean; size?: number }
   | { id: string; kind: 'tick' | 'arrow'; a: Ref; b: Ref; n: number }
   /** Tick or arrow on a circle. `angle` is local degrees, the same frame as a point on the circle. */
   | { id: string; kind: 'tick' | 'arrow'; circle: string; angle: number; n: number }

@@ -106,14 +106,15 @@ export function parseProjectText(text: string): ProjectDocument {
     if(l.color!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(l.color))fail();
   }
   for (const m of d.marks) {
-    if (!['right','tick','arrow','attachment'].includes(m.kind)) fail();
+    if (!['right','angle','tick','arrow','attachment'].includes(m.kind)) fail();
     const onCircle = (m.kind === 'tick' || m.kind === 'arrow') && 'circle' in m;
     if (onCircle) {
       if (typeof m.circle !== 'string' || !d.shapes.some((s: { id: string }) => s.id === m.circle) || !finite(m.angle) || !Number.isInteger(m.n) || m.n < 1 || m.n > 10) fail();
       continue;
     }
     if (!ref(m.a) || !ref(m.b)) fail();
-    if(m.kind==='right'&&!ref(m.at))fail();
+    if((m.kind==='right'||m.kind==='angle')&&!ref(m.at))fail();
+    if(m.kind==='angle'&&(typeof m.text!=='string'||m.text.length>20||(m.color!==undefined&&!/^#[0-9a-fA-F]{6}$/.test(m.color))||(m.fill!==undefined&&typeof m.fill!=='boolean')||(m.size!==undefined&&(!finite(m.size)||m.size<0.4||m.size>6))))fail();
     if((m.kind==='tick'||m.kind==='arrow')&&(!Number.isInteger(m.n)||m.n<1||m.n>10))fail();
     if(m.kind==='attachment'&&(!ref(m.at)||!['wall','hinge','particle','block'].includes(m.item)||![1,-1].includes(m.side)||(m.size!==undefined&&(!finite(m.size)||m.size<0.4||m.size>20))))fail();
   }
@@ -139,14 +140,14 @@ export function parseProjectText(text: string): ProjectDocument {
     }
     for (const mark of d.marks) {
       if ((mark.kind === 'tick' || mark.kind === 'arrow') && 'circle' in mark) continue;
-      const refs = mark.kind === 'right'||mark.kind==='attachment' ? [mark.at, mark.a, mark.b] : [mark.a, mark.b];
+      const refs = mark.kind === 'right'||mark.kind==='angle'||mark.kind==='attachment' ? [mark.at, mark.a, mark.b] : [mark.a, mark.b];
       const spatial = refs.map(r => spatialRef(d, r));
       if (spatial.some(Boolean) && (spatial.some(p => !p) || new Set(spatial.map(p => p?.owner)).size !== 1)) fail();
     }
     for (const line of d.lines) if (!w.ref(line.a) || !w.ref(line.b)) fail();
     for (const mark of d.marks) {
       if ((mark.kind === 'tick' || mark.kind === 'arrow') && 'circle' in mark) continue;
-      if (!w.ref(mark.a) || !w.ref(mark.b) || ((mark.kind === 'right' || mark.kind === 'attachment') && !w.ref(mark.at))) fail();
+      if (!w.ref(mark.a) || !w.ref(mark.b) || ((mark.kind === 'right' || mark.kind === 'angle' || mark.kind === 'attachment') && !w.ref(mark.at))) fail();
     }
   } catch { fail(); }
   return { format: 'nagwa-figure-studio', version: 1, scene: d, settings: o };

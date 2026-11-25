@@ -186,6 +186,15 @@ function ConstructionList() {
                   </label>}
                   <button className="icon-btn danger" onClick={() => removeMark(m.id)} aria-label={`Delete ${m.item}`}>✕</button>
                 </div>
+              ) : m.kind==='angle' ? (
+                <div key={m.id} className="con-row">
+                  <span className="muted small">angle {nm(m.a)}{nm(m.at)}{nm(m.b)}</span>
+                  <TextField value={m.text} placeholder="no label" onCommit={(t)=>patchMark(m.id,{text:t.slice(0,20)})}/>
+                  <label className="check tiny"><input type="checkbox" checked={!!m.fill} onChange={e=>patchMark(m.id,{fill:e.target.checked})}/>fill</label>
+                  <label className="slider"><span>size <b>{(m.size??1).toFixed(1)}</b></span><input aria-label="Angle arc size" type="range" min={.5} max={4} step={.1} value={m.size??1} onChange={e=>patchMark(m.id,{size:Number(e.target.value)})}/></label>
+                  <ColorSwatches label="Angle colour" value={m.color} onPick={(hex)=>patchMark(m.id,{color:hex})}/>
+                  <button className="icon-btn danger" onClick={() => removeMark(m.id)} aria-label="Delete angle">✕</button>
+                </div>
               ) : (
                 <button key={m.id} className="chip sm" onClick={() => removeMark(m.id)} title="Remove this mark">
                   {m.kind === 'right' ? '∟ right angle' : 'circle' in m ? `${m.kind === 'tick' ? 'circle ticks' : 'circle »'} ×${m.n}` : m.kind === 'tick' ? `${nm(m.a)}${nm(m.b)} ticks ×${m.n}` : `${nm(m.a)}${nm(m.b)} » ×${m.n}`} ✕

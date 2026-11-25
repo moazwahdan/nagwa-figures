@@ -27,7 +27,7 @@ export function cloneScene(source:SceneData):SceneData {
   scene.points=scene.points.map(p=>({...p,id:id(p.id),def:def(p.def)}));
   scene.lines=scene.lines.map(l=>({...l,id:id(l.id),a:ref(l.a),b:ref(l.b)}));
   scene.marks=scene.marks.map(m=>{
-    if(m.kind==='right'||m.kind==='attachment')return {...m,id:id(m.id),a:ref(m.a),b:ref(m.b),at:ref(m.at)};
+    if(m.kind==='right'||m.kind==='angle'||m.kind==='attachment')return {...m,id:id(m.id),a:ref(m.a),b:ref(m.b),at:ref(m.at)};
     if('circle' in m)return {...m,id:id(m.id),circle:id(m.circle)};
     return {...m,id:id(m.id),a:ref(m.a),b:ref(m.b)};
   });

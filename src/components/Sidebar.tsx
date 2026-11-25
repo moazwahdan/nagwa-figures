@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ColorSwatches } from './ColorSwatches';
 import { AxesConstructions } from './AxesInspector';
 import { CustomShapePicker } from './CustomShapesPanel';
 import { TextsPanel } from './TextsPanel';
@@ -125,6 +126,13 @@ function ToolOptions({ group }: { group: ToolGroup }) {
             <input type="range" min={10} max={100} step={5} value={o.extendPct} onChange={(e) => set({ extendPct: Number(e.target.value) })} />
           </label>
           <label className="check"><input type="checkbox" checked={o.namePoint} onChange={(e) => set({ namePoint: e.target.checked })} />Name the end point</label>
+        </>
+      )}
+      {tool === 'angle-mark' && (
+        <>
+          <label><span>Label</span><input value={o.angleText} maxLength={20} placeholder="θ, α, 60° …" onChange={(e) => set({ angleText: e.target.value })} /></label>
+          <label className="check"><input type="checkbox" checked={o.angleFill} onChange={(e) => set({ angleFill: e.target.checked })} />Fill the sector</label>
+          <ColorSwatches label="Angle colour" value={o.angleColor} onPick={(hex) => set({ angleColor: hex })} />
         </>
       )}
       {tool === 'mark' && (

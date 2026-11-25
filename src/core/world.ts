@@ -215,7 +215,7 @@ export function pruneUnresolved(data: SceneData): SceneData {
     const lines = cur.lines.filter((l) => ok(l.a) && ok(l.b) && !(l.via??[]).some(r=>!ok(r)));
     const marks = cur.marks.filter((m) => {
       if ('circle' in m) return cur.shapes.some((s) => s.id === m.circle);
-      if (m.kind === 'right' || m.kind === 'attachment') return ok(m.at) && ok(m.a) && ok(m.b);
+      if (m.kind === 'right' || m.kind === 'angle' || m.kind === 'attachment') return ok(m.at) && ok(m.a) && ok(m.b);
       return ok(m.a) && ok(m.b);
     });
     const same = points.length === cur.points.length && lines.length === cur.lines.length && marks.length === cur.marks.length;

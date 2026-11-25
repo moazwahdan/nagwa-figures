@@ -101,7 +101,7 @@ interface Store extends SceneData {
 
   patchPoint: (id: string, patch: Partial<ConPoint>) => void;
   patchLine: (id: string, patch: Partial<ConLine>) => void;
-  patchMark: (id: string, patch: Partial<Extract<ConMark, { kind: 'attachment' }>>) => void;
+  patchMark: (id: string, patch: Partial<Extract<ConMark, { kind: 'attachment' }>> | Partial<Extract<ConMark, { kind: 'angle' }>>) => void;
   toggleAnchor: (shapeId: string, key: AnchorKey) => void;
   ensureAnchor: (shapeId: string, key: AnchorKey) => Ref | null;
   removePoint: (id: string) => void;
@@ -470,7 +470,7 @@ export const useStore = create<Store>((set, get) => {
     },
     patchMark: (id, patch) => {
       push();
-      set({ marks: get().marks.map((m) => (m.id === id && m.kind === 'attachment' ? { ...m, ...patch } : m)) });
+      set({ marks: get().marks.map((m) => (m.id === id && (m.kind === 'attachment' || m.kind === 'angle') ? { ...m, ...patch } as typeof m : m)) });
     },
     toggleAnchor: (shapeId, key) => {
       const d = data();

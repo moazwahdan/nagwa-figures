@@ -8,6 +8,7 @@ import type { ConLine, ConMark, ConPoint, ConstructionPlane, PointDef, Ref, Scen
 import {
   boundaryHits,
   buildWorld,
+  refEq,
   findExisting,
   nextName,
   ownerOfRef,
@@ -58,6 +59,9 @@ export interface ToolOpts {
   lineWeight: number;
   hatchSide: 1 | -1;
   attachSize: number;
+  angleText: string;
+  angleFill: boolean;
+  angleColor?: string;
 }
 
 export const DEFAULT_OPTS: ToolOpts = {
@@ -81,6 +85,8 @@ export const DEFAULT_OPTS: ToolOpts = {
   lineWeight: 1,
   hatchSide: -1,
   attachSize: 3,
+  angleText: '',
+  angleFill: false,
 };
 
 export type ToolResult =
@@ -514,6 +520,20 @@ function addCrossing(b: Builder, t: Target): boolean {
   return false;
 }
 export const TOOLS: ToolDef[] = [
+  {
+    id: 'angle-mark',
+    label: 'Angle arc',
+    group: 'Marks',
+    tip: 'Click a point on the first ray, then the vertex, then a point on the second ray. Draws a coloured / filled arc with an optional label (θ, α …).',
+    steps: ['point', 'point', 'point'],
+    prompts: ['Click a point on the first ray', 'Click the vertex of the angle', 'Click a point on the second ray'],
+    run: (d, [p1, v, p2], o) =>
+      run(d, (b) => {
+        const A = pointFrom(b, p1, false), V = pointFrom(b, v, false), B = pointFrom(b, p2, false);
+        if (refEq(A, V) || refEq(V, B) || refEq(A, B)) fail('Choose three different points.');
+        b.addMark({ id: uid(), kind: 'angle', at: V, a: A, b: B, text: o.angleText.trim(), ...(o.angleColor ? { color: o.angleColor } : {}), ...(o.angleFill ? { fill: true } : {}) });
+      }),
+  },
   {
     id: 'side-point',
     label: 'Point on side',
