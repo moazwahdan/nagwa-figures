@@ -60,6 +60,7 @@ export interface ToolOpts {
   hatchSide: 1 | -1;
   attachSize: number;
   angleText: string;
+  forceVec?: boolean;
   angleFill: boolean;
   angleColor?: string;
 }
@@ -180,7 +181,7 @@ class Builder {
   }
 
   /** Create a segment, refusing duplicates and segments that already lie on a side. Returns false if skipped silently. */
-  addLine(a: Ref, b: Ref, o: { dashed?: boolean; silent?: boolean; arrow?:ConLine['arrow']; weight?:number; force?:boolean } = {}): boolean {
+  addLine(a: Ref, b: Ref, o: { dashed?: boolean; silent?: boolean; arrow?:ConLine['arrow']; weight?:number; force?:boolean; vec?:boolean } = {}): boolean {
     const A = this.pos(a);
     const B = this.pos(b);
     const tol = this.tol;
@@ -208,7 +209,7 @@ class Builder {
       const shape=this.data.shapes.find(s=>s.id===SA.owner)!;
       const g=geometryOf(shape).solid!;
       for(const e of g.edges)if(on3(p,g.vertices[e.a],g.vertices[e.b])&&on3(q,g.vertices[e.a],g.vertices[e.b]))return bad(`${nm} is already part of an edge of the solid.`);
-      const l: ConLine = { id: uid(), a, b, dashed: !!o.dashed, arrow:o.arrow??'none', weight:o.weight??1, ...(o.force?{kind:'force' as const}:{}), label: { text: '', unit: !o.force } };
+      const l: ConLine = { id: uid(), a, b, dashed: !!o.dashed, arrow:o.arrow??'none', weight:o.weight??1, ...(o.force?{kind:'force' as const}:{}), ...(o.force&&o.vec?{vec:true}:{}), label: { text: '', unit: !o.force } };
       this.lines.push(l);this.data={...this.data,lines:[...this.data.lines,l]};return true;
     }
     if (vlen(vsub(A, B)) < tol) return bad('The two points are the same point.');
@@ -239,7 +240,7 @@ class Builder {
       }
     }
     }
-    const l: ConLine = { id: uid(), a, b, dashed: !!o.dashed, arrow:o.arrow??'none', weight:o.weight??1, ...(o.force?{kind:'force' as const}:{}), label: { text: '', unit: !o.force } };
+    const l: ConLine = { id: uid(), a, b, dashed: !!o.dashed, arrow:o.arrow??'none', weight:o.weight??1, ...(o.force?{kind:'force' as const}:{}), ...(o.force&&o.vec?{vec:true}:{}), label: { text: '', unit: !o.force } };
     this.lines.push(l);
     this.data = { ...this.data, lines: [...this.data.lines, l] };
     return true;
@@ -355,7 +356,7 @@ function ensureNamed(b: Builder, r: Ref): Ref {
   return r;
 }
 
-function anchorLoose(b: Builder, from: Target, to: Target, o: { dashed?: boolean; arrow?: ConLine['arrow']; weight?: number; force?: boolean }) {
+function anchorLoose(b: Builder, from: Target, to: Target, o: { dashed?: boolean; arrow?: ConLine['arrow']; weight?: number; force?: boolean; vec?: boolean }) {
   const origin = ensureNamed(b, targetRef(b, from, true));
   const A = b.pos(origin);
   const B = targetScenePos(b.data, to) ?? fail('Could not read that location.');
@@ -366,7 +367,7 @@ function anchorLoose(b: Builder, from: Target, to: Target, o: { dashed?: boolean
   b.addLine(origin, end, o);
 }
 
-function connectEnds(b: Builder, t1: Target, t2: Target, o: { dashed?: boolean; arrow?: ConLine['arrow']; weight?: number; force?: boolean }) {
+function connectEnds(b: Builder, t1: Target, t2: Target, o: { dashed?: boolean; arrow?: ConLine['arrow']; weight?: number; force?: boolean; vec?: boolean }) {
   if (looseTarget(t2) && pickAttached(b.data, t1)) return anchorLoose(b, t1, t2, o);
   if (looseTarget(t1) && pickAttached(b.data, t2)) return anchorLoose(b, t2, t1, o);
   b.addLine(targetRef(b, t1, true), targetRef(b, t2, true), o);
@@ -668,7 +669,7 @@ export const TOOLS: ToolDef[] = [
     steps:['pointOrCanvas','pointOrCanvas'],
     prompts:['Click the force start point','Click the end (Shift snaps to 0° / 45° / 90° …)'],
     run:(d,[from,to],o)=>run(d,b=>{
-      connectEnds(b, from, to, {dashed:o.dashed,arrow:forceArrow(from,to,d,o.arrow),weight:o.lineWeight,force:true});
+      connectEnds(b, from, to, {dashed:o.dashed,arrow:forceArrow(from,to,d,o.arrow),weight:o.lineWeight,force:true,vec:o.forceVec});
     }),
   },
   {
@@ -679,7 +680,7 @@ export const TOOLS: ToolDef[] = [
     steps:['pointOrCanvas','pointOrCanvas'],
     prompts:['Click the force start','Click the force end (Shift snaps to 0° / 45° / 90° …)'],
     run:(d,[from,to],o)=>run(d,b=>{
-      connectEnds(b, from, to, {dashed:o.dashed,arrow:forceArrow(from,to,d,o.arrow),weight:o.lineWeight,force:true});
+      connectEnds(b, from, to, {dashed:o.dashed,arrow:forceArrow(from,to,d,o.arrow),weight:o.lineWeight,force:true,vec:o.forceVec});
     }),
   },
   {

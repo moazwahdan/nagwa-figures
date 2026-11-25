@@ -105,6 +105,7 @@ function ToolOptions({ group }: { group: ToolGroup }) {
         {(tool==='force-line'||tool==='draw-force')&&<>
           <label><span>Arrow</span><select value={o.arrow} onChange={e=>set({arrow:e.target.value as typeof o.arrow})}><option value="none">Auto</option><option value="end">At the end</option><option value="middle">In the middle</option><option value="start">At the start</option><option value="both">Both ends</option></select></label>
           <Tooltip tip="Hold Shift after the start to snap to 0° / 45° / 90° and, on a body sitting on an incline, a line parallel to the slope. Auto puts the arrowhead in the middle for a free force, or at the end when it joins two points on the same body. You can override it here or in the inspector. Thickening the line also enlarges the arrowhead.">
+            <label className="check"><input type="checkbox" checked={!!o.forceVec} onChange={e=>set({forceVec:e.target.checked})} />Vector arrow over the symbol</label>
             <p className="muted small">Line weight is fixed at 0.797 pt.</p>
           </Tooltip>
         </>}

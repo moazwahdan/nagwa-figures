@@ -187,6 +187,12 @@ export interface ConLine {
   symbol?: string;
   /** Smart force arrow: labelled F / ق, numbered when several exist. */
   kind?: 'force';
+  /** Force symbol drawn with a vector arrow accent (F⃗ / ق⃗). */
+  vec?: boolean;
+  /** Where the force symbol sits: at the arrow tip (default), middle or start of the line. */
+  labelPos?: 'end' | 'middle' | 'start';
+  /** Side of the line for a middle / start symbol (1 = above/left, -1 = the other side). */
+  labelSide?: 1 | -1;
   label: SideLabel;
   nudge?: Vec;
   nudgeByLang?: Partial<Record<Lang, Vec>>;

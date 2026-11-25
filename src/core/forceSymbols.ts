@@ -43,3 +43,24 @@ export function forceSymbolName(sym: string): string {
   const sub = n ? [...n].map((c) => '₀₁₂₃₄₅₆₇₈₉'[Number(c)]).join('') : '';
   return `F${sub} / ق${n ? toArabicDigits(n) : ''}`;
 }
+
+/** Where the symbol of a force line is drawn (px). `mark` is the arrowhead size. */
+export function forceLabelAt(a: { x: number; y: number }, b: { x: number; y: number }, arrow: string | undefined, pos: 'end' | 'middle' | 'start' | undefined, side: 1 | -1 | undefined, fs: number, mark: number): { x: number; y: number } {
+  const len = Math.hypot(b.x - a.x, b.y - a.y) || 1, e = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
+  let nx = -e.y, ny = e.x;
+  if (ny > 0) { nx = -nx; ny = -ny; }
+  const sd = side ?? 1;
+  const where = pos ?? (arrow === 'middle' ? 'middle' : 'end');
+  if (where === 'middle') return { x: (a.x + b.x) / 2 + nx * fs * 0.74 * sd, y: (a.y + b.y) / 2 + ny * fs * 0.74 * sd };
+  if (where === 'start') return { x: a.x + e.x * Math.min(len * 0.2, fs * 2) + nx * fs * 0.74 * sd, y: a.y + e.y * Math.min(len * 0.2, fs * 2) + ny * fs * 0.74 * sd };
+  const start = arrow === 'start', tip = start ? a : b, dir = start ? { x: -e.x, y: -e.y } : e;
+  return { x: tip.x + dir.x * mark * 1.15, y: tip.y + dir.y * mark * 1.15 };
+}
+
+/** Geometry of the vector accent over a symbol centred at `pos`: segment from x0 to x1 at height y, head on the left for Arabic. */
+export function vectorAccent(pos: { x: number; y: number }, text: string, sub: string | undefined, fs: number, lang: 'ar' | 'en') {
+  const w = Math.max(fs * 0.5, [...text].length * fs * 0.62);
+  const shift = sub && lang === 'en' ? -[...sub].length * fs * 0.31 / 2 : 0;
+  const cx = pos.x + shift, y = pos.y - fs * 0.62;
+  return { x0: cx - w / 2, x1: cx + w / 2, y, head: fs * 0.16 };
+}

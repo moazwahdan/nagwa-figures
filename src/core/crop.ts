@@ -9,7 +9,7 @@ import { ARROW_TO_STROKE } from './paper';
 import { setInkFit } from './world';
 import type { AxisCoord, ShapeInstance } from './types';
 import { labelSize } from './labelSizing';
-import { effectiveForceSymbol, forceSymbolParts } from './forceSymbols';
+import { effectiveForceSymbol, forceLabelAt, forceSymbolParts, vectorAccent } from './forceSymbols';
 import { placeLabel, placeOutward, type Box, type Obstacles } from './labelPlacement';
 import { vertexLabelOf, localizeText, pointLabel, unitLabel } from './labels';
 import type { Lang, Ref, SceneData, Vec } from './types';
@@ -343,17 +343,10 @@ export function inkBoundsPx(rawData: SceneData, lang: Lang = 'en'): InkBox | nul
         const own = data.shapes.find((s) => s.id === ownerOfRef(data, l.a));
         const fs = labelSize(data, own, lang) * 0.95;
         const markK = data.style.markSize || data.style.stroke * MARK_TO_STROKE;
-        let at: Vec;
-        if (l.arrow === 'middle') {
-          let nx = -e.y, ny = e.x;
-          if (ny > 0) { nx = -nx; ny = -ny; }
-          at = { x: (pa.x + pb.x) / 2 + nx * fs * 0.7, y: (pa.y + pb.y) / 2 + ny * fs * 0.7 };
-        } else {
-          const start = l.arrow === 'start', tip = start ? pa : pb, dir = start ? { x: -e.x, y: -e.y } : e;
-          at = { x: tip.x + dir.x * markK * 1.15, y: tip.y + dir.y * markK * 1.15 };
-        }
+        const at = forceLabelAt(pa, pb, l.arrow, l.labelPos, l.labelSide, fs, markK);
         const fn = l.nudgeByLang?.[lang] ?? l.nudge;
         addGlyph(add, { x: at.x + (fn?.x ?? 0), y: at.y + (fn?.y ?? 0) }, parts.text + (parts.sub ?? ''), fs, lang, lang === 'en' && italic);
+        if (l.vec) { const np = { x: at.x + (fn?.x ?? 0), y: at.y + (fn?.y ?? 0) }, v = vectorAccent(np, parts.text, parts.sub, fs, lang); add(v.x0 - v.head, v.y - v.head); add(v.x1 + v.head, v.y + v.head); }
       }
     }
     if (l.label.text.trim()) {

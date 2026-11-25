@@ -18,7 +18,7 @@ import { toUnits } from '../core/scene';
 import { formatNumber, localizeName, vertexLabelOf, localizeText, pointLabel, toArabicDigits, unitLabel } from '../core/labels';
 import { dataForLang, placeShape, type Placed } from '../core/scene';
 import { inkBoundsPx, vertexGapShifts } from '../core/crop';
-import { effectiveForceSymbol, forceSymbolParts } from '../core/forceSymbols';
+import { effectiveForceSymbol, forceLabelAt, forceSymbolParts, vectorAccent } from '../core/forceSymbols';
 import { interiorAngles } from '../core/shapes2d';
 import type { StepKind, Target } from '../core/tools';
 import { COMPASS_DEG, SIDE_FRACS, forceSnapLocals } from '../core/forceSnaps';
@@ -371,12 +371,12 @@ export function SceneSvg({ axesTool, data: rawData, lang, interactive = false, s
     if(l.arrow==='middle')arrow(add({x:(a.x+b.x)/2,y:(a.y+b.y)/2},e,m*.42),e,`lam${l.id}`);
     if(l.kind==='force'){
       const parts=forceSymbolParts(effectiveForceSymbol(data.lines,l),lang,st);
-      const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
-      const up=nrm.y>0?{x:-nrm.x,y:-nrm.y}:nrm;
-      const at=l.arrow==='middle'?add(mid,up,sizeFor(ownerOfRef(data,l.a))*0.7):add(l.arrow==='start'?a:b,l.arrow==='start'?{x:-e.x,y:-e.y}:e,mark*1.15);
       const own=ownerOfRef(data,l.a);
       const fs=sizeFor(own)*0.95;
-      if(parts)texts.push(<Txt key={`cf${l.id}`} color={ink} pos={nzV(l.nudgeByLang?.[lang]??l.nudge,at)} text={parts.text} sub={parts.sub} lang={lang} size={fs} italic={lang==='en'&&st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`line:${l.id}`} direction={lang==='ar'?'rtl':'ltr'} flip={lang==='ar'}/>);
+      const at=forceLabelAt(a,b,l.arrow,l.labelPos,l.labelSide,fs,mark);
+      const npos=nzV(l.nudgeByLang?.[lang]??l.nudge,at);
+      if(parts)texts.push(<Txt key={`cf${l.id}`} color={ink} pos={npos} text={parts.text} sub={parts.sub} lang={lang} size={fs} italic={lang==='en'&&st.italicLetters} interactive={interactive} locked={lockedFor(own)} owner={own} con={`line:${l.id}`} direction={lang==='ar'?'rtl':'ltr'} flip={lang==='ar'}/>);
+      if(parts&&l.vec){const v=vectorAccent(npos,parts.text,parts.sub,fs,lang),hd=v.head,tipX=lang==='ar'?v.x0:v.x1,dx=lang==='ar'?1:-1;drawn.push(<path key={`cv${l.id}`} d={`M${v.x0} ${v.y} L${v.x1} ${v.y} M${tipX} ${v.y} L${tipX+dx*hd*1.6} ${v.y-hd} M${tipX} ${v.y} L${tipX+dx*hd*1.6} ${v.y+hd}`} fill="none" stroke={ink} strokeWidth={st.stroke} strokeLinecap="round" strokeLinejoin="round"/>);}
     } else if (l.label.text.trim()) {
       const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
       const raw = localizeText(l.label.text.trim(), lang, st);
