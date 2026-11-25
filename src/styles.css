@@ -520,3 +520,25 @@ math-field.figure-math[lang="en"]{direction:ltr !important;text-align:left !impo
 math-field.figure-math[lang="ar"]{direction:rtl !important;text-align:right !important;}
 
 .preview-cell, .preview-cell * { user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
+
+/* ---------- roomier side panels on wide screens ---------- */
+@media (min-width: 1200px) {
+  .workspace { grid-template-columns: clamp(300px, 21vw, 420px) minmax(0, 1fr) clamp(360px, 26vw, 520px); }
+  .sidebar { padding: 14px 14px 0; }
+  .inspector { padding: 22px 20px; }
+  .sidebar, .inspector { font-size: 13px; line-height: 1.45; }
+  .inspector .group-title { margin: 22px 0 10px; font-size: 11.5px; letter-spacing: .6px; }
+  .inspector .field, .inspector .check, .inspector .fields, .inspector .split2, .inspector .chips { margin-top: 10px; }
+  .inspector .fields, .inspector .split2 { gap: 12px; }
+  .inspector .field > span, .inspector .check { font-size: 12px; }
+  .inspector input:not([type=checkbox]):not([type=range]), .inspector select { min-height: 34px; font-size: 13px; padding: 5px 10px; }
+  .inspector .con-row { padding: 10px 12px; margin-top: 10px; gap: 10px; }
+  .inspector .btn, .inspector .mini { min-height: 32px; font-size: 12px; padding: 6px 12px; }
+  .inspector .chips { gap: 8px; }
+  .sidebar .sec { margin-bottom: 18px; padding-bottom: 12px; }
+  .sidebar .sec-head { padding: 12px 0; font-size: 11px; }
+  .sidebar .tile { font-size: 12.5px; }
+  .sidebar-scroll .grid { gap: 12px; }
+  .stage { padding: 12px 16px; gap: 12px; }
+  .stage-grid { gap: 14px; }
+}
