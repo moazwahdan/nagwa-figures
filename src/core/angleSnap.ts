@@ -49,13 +49,12 @@ export function extraGuideAngles(data: SceneData, from: Target): number[] {
   const s = ownerId ? data.shapes.find(x => x.id === ownerId) : undefined;
   const out: number[] = [];
   const add = (deg: number) => { out.push(deg, deg + 180); };
-  if (s?.sit) add((Math.atan2(s.sit.along.y, s.sit.along.x) * 180) / Math.PI);
+  if (s?.sit) { const a = (Math.atan2(s.sit.along.y, s.sit.along.x) * 180) / Math.PI; add(a); add(a + 90); }
+  else if (s && (s.defId === 'mech-block' || s.defId === 'mech-particle')) { add(s.rotation); add(s.rotation + 90); }
   if (s?.defId === 'mech-wedge') {
     const g = geometryOf(s);
-    if (g.points.length >= 2) {
-      const A = toUnits(s, g.points[0]), B = toUnits(s, g.points[1]);
-      add(sceneAngle(A, B));
-    }
+    for (let i = 0; i + 1 < g.points.length && i < 3; i++) add(sceneAngle(toUnits(s, g.points[i]), toUnits(s, g.points[i + 1])));
+    if (g.points.length === 3) add(sceneAngle(toUnits(s, g.points[2]), toUnits(s, g.points[0])));
   }
   return out;
 }

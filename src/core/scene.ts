@@ -221,6 +221,13 @@ export function mergeShapePatch(s: ShapeInstance, patch: Partial<ShapeInstance>)
   const next = { ...s, ...patch };
   const resized = patch.scale !== undefined || patch.scaleX !== undefined || patch.scaleY !== undefined || patch.params !== undefined;
   const moved = patch.offset !== undefined || patch.rotation !== undefined;
+  /* A body placed from the Constructions tab stays glued to its plane: moving it only slides it along the supporting line. Rotating it by hand still frees it. */
+  if (s.sit && patch.offset !== undefined && patch.rotation === undefined && !resized) {
+    const { at, along } = s.sit;
+    const len = Math.hypot(along.x, along.y) || 1, ux = along.x / len, uy = along.y / len;
+    const t = (patch.offset.x - s.offset.x) * ux + (patch.offset.y - s.offset.y) * uy;
+    return sitOnPoint({ ...next, offset: s.offset }, { x: at.x + t * ux, y: at.y + t * uy }, along);
+  }
   if (moved && !resized) return { ...next, sit: undefined };
   if (next.sit && resized) return sitOnPoint(next, next.sit.at, next.sit.along);
   return next;
