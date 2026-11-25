@@ -10,6 +10,7 @@ void import('@nagwa-limited/mathlive').then(() => {
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { appFontCss } from './core/fonts';
 import { installVerify } from './core/verifyHook';
 import './styles.css';
@@ -21,6 +22,6 @@ document.head.appendChild(style);
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary><App /></ErrorBoundary>
   </StrictMode>,
 );

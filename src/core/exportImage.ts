@@ -6,14 +6,13 @@ import { SceneSvg } from '../components/SceneSvg';
 import { embeddedFontCss } from './fonts';
 import { bakeCaptionMath } from './mathliveHost';
 import { documentFor, embedProjectInSvg } from './project';
-import { jsPDF } from 'jspdf';
-import { svg2pdf } from 'svg2pdf.js';
 import { convertSvgTextToPaths } from './svgTextToPath';
 import type { Lang, ProjectSettings, SceneData } from './types';
 
 export async function buildSvg(data: SceneData, lang: Lang): Promise<string> {
   await Promise.all(data.shapes.filter((s) => s.caption).map((s) => bakeCaptionMath(s.caption![lang], lang)));
-  const css = await embeddedFontCss();
+  /* Embed only the font families this figure actually mentions (the full set is ~8 MB of base64). */
+  const css = await embeddedFontCss(renderToStaticMarkup(createElement(SceneSvg, { data, lang })));
   const markup = renderToStaticMarkup(createElement(SceneSvg, { data, lang, css }));
   return `<?xml version="1.0" encoding="UTF-8"?>\n${markup}`;
 }
@@ -101,6 +100,8 @@ export async function svgToPdf(svgString: string, w: number, h: number): Promise
       throw new Error(`PDF outlines incomplete: leftover text=${leftover} missing=${converted.missing.slice(0, 12).join(' ')}`);
     }
     const orientation = w > h ? 'landscape' : 'portrait';
+    /* The PDF libraries are large and only needed here, so they load on the first PDF export instead of at start-up. */
+    const [{ jsPDF }, { svg2pdf }] = await Promise.all([import('jspdf'), import('svg2pdf.js')]);
     const pdf = new jsPDF({
       orientation,
       unit: 'px',

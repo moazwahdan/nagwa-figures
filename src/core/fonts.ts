@@ -60,7 +60,7 @@ export function appFontCss(): string {
   ).join('\n');
 }
 
-let cached: string | null = null;
+let cached: { family: string; rule: string }[] | null = null;
 
 function toBase64(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
@@ -69,18 +69,19 @@ function toBase64(buf: ArrayBuffer): string {
   return btoa(bin);
 }
 
-/** @font-face rules with the font data inlined, so exported SVG/PNG look identical anywhere. */
-export async function embeddedFontCss(): Promise<string> {
-  if (cached) return cached;
-  const rules = await Promise.all(
-    (FACES as FontFace[]).map(async (f) => {
-      const res = await fetch(f.url);
-      const b64 = toBase64(await res.arrayBuffer());
-      const format = f.url.endsWith('.otf') || f.url.includes('.otf?') ? 'opentype' : f.url.endsWith('.ttf') || f.url.includes('.ttf?') ? 'truetype' : 'woff2';
-      const weight = f.weight ?? '400';
-      return `@font-face{font-family:'${f.family}';font-style:${f.style};font-weight:${weight};src:url(data:font/${format};base64,${b64}) format('${format}');}`;
-    }),
-  );
-  cached = rules.join('\n');
-  return cached;
+/** @font-face rules with the font data inlined, so exported SVG/PNG look identical anywhere.
+ * Pass the figure's markup to embed only the families it mentions; omit it to embed everything. */
+export async function embeddedFontCss(markup?: string): Promise<string> {
+  if (!cached) {
+    cached = await Promise.all(
+      (FACES as FontFace[]).map(async (f) => {
+        const res = await fetch(f.url);
+        const b64 = toBase64(await res.arrayBuffer());
+        const format = f.url.endsWith('.otf') || f.url.includes('.otf?') ? 'opentype' : f.url.endsWith('.ttf') || f.url.includes('.ttf?') ? 'truetype' : 'woff2';
+        const weight = f.weight ?? '400';
+        return { family: f.family, rule: `@font-face{font-family:'${f.family}';font-style:${f.style};font-weight:${weight};src:url(data:font/${format};base64,${b64}) format('${format}');}` };
+      }),
+    );
+  }
+  return cached.filter((r) => markup === undefined || markup.includes(r.family)).map((r) => r.rule).join('\n');
 }
