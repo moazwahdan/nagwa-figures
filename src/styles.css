@@ -612,3 +612,25 @@ input[type=range] { accent-color: var(--accent); }
 .planes-cols { display:grid; gap:10px; margin-top:12px; }
 .planes-col { display:grid; gap:8px; align-content:start; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:var(--bg,transparent); }
 .planes-col b { font-size:13px; }
+
+/* Statistics data tables: fit the inspector width instead of overflowing it */
+:is([data-chart-inspector="pie"],[data-chart-inspector="stem"]) .chart-table { table-layout: fixed; width: 100%; border-collapse: separate; border-spacing: 3px 4px; }
+:is([data-chart-inspector="pie"],[data-chart-inspector="stem"]) .chart-table th { font-size: 11px; font-weight: 600; color: var(--muted, #6b7280); text-align: center; }
+:is([data-chart-inspector="pie"],[data-chart-inspector="stem"]) .chart-table td { padding: 0; min-width: 0; }
+:is([data-chart-inspector="pie"],[data-chart-inspector="stem"]) .chart-table input, :is([data-chart-inspector="pie"],[data-chart-inspector="stem"]) .chart-table select { width: 100%; min-width: 0; box-sizing: border-box; padding: 5px 6px; font-size: 12px; }
+:is([data-chart-inspector="pie"],[data-chart-inspector="stem"]) .chart-table .icon-btn { width: 100%; padding: 4px 0; }
+:is([data-chart-inspector="pie"],[data-chart-inspector="stem"]) .chart-table th:last-child, :is([data-chart-inspector="pie"],[data-chart-inspector="stem"]) .chart-table td:last-child { width: 28px; }
+[data-chart-inspector="pie"] .chart-table th:nth-child(3), [data-chart-inspector="pie"] .chart-table td:nth-child(3) { width: 15%; }
+[data-chart-inspector="pie"] .chart-table th:nth-child(4), [data-chart-inspector="pie"] .chart-table td:nth-child(4) { width: 22%; }
+[data-chart-inspector="stem"] .chart-table th:first-child, [data-chart-inspector="stem"] .chart-table td:first-child { width: 22%; }
+
+/* Pie rows: names on the first line, value / colour / delete on the second, so nothing is squeezed */
+[data-chart-inspector="pie"] .chart-table thead { display: none; }
+[data-chart-inspector="pie"] .chart-table, [data-chart-inspector="pie"] .chart-table tbody { display: block; }
+[data-chart-inspector="pie"] .chart-table tr { display: grid; grid-template-columns: 1fr 1.4fr 28px; gap: 4px; padding: 6px 0; border-bottom: 1px solid var(--border, #e5e7eb); }
+[data-chart-inspector="pie"] .chart-table td { width: auto !important; }
+[data-chart-inspector="pie"] .chart-table td:nth-child(1) { grid-column: 1 / 4; grid-row: 1; }
+[data-chart-inspector="pie"] .chart-table td:nth-child(2) { grid-column: 1 / 4; grid-row: 2; }
+[data-chart-inspector="pie"] .chart-table td:nth-child(3) { grid-column: 1; grid-row: 3; }
+[data-chart-inspector="pie"] .chart-table td:nth-child(4) { grid-column: 2; grid-row: 3; }
+[data-chart-inspector="pie"] .chart-table td:nth-child(5) { grid-column: 3; grid-row: 3; }

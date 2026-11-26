@@ -58,7 +58,7 @@ function PieInspector({ s, c, error, apply, patch, setRow }: Ctx) {
   return <div className="panel chart-panel" data-chart-inspector="pie">
     <PanelHead s={s} title="Pie chart" error={error} />
     <div className="group-title">Data table</div>
-    <table className="chart-table" style={{ width: '100%', fontSize: 12 }}><thead><tr><th>EN</th><th>AR</th><th>Value</th><th>Colour</th><th /></tr></thead>
+    <table className="chart-table"><thead><tr><th>EN</th><th>AR</th><th>Value</th><th>Colour</th><th /></tr></thead>
       <tbody>{c.points.map((p, i) => <tr key={i} data-chart-row={i}>
         <td><input aria-label={`Row ${i + 1} English`} value={p.label?.en ?? ''} onChange={(e) => setRow(i, { label: { ar: p.label?.ar ?? '', en: e.target.value } })} /></td>
         <td><input aria-label={`Row ${i + 1} Arabic`} dir="rtl" value={p.label?.ar ?? ''} onChange={(e) => setRow(i, { label: { en: p.label?.en ?? '', ar: e.target.value } })} /></td>
@@ -84,7 +84,7 @@ function StemInspector({ s, c, error, apply, patch, setRow }: Ctx) {
   return <div className="panel chart-panel" data-chart-inspector="stem">
     <PanelHead s={s} title="Stem-and-leaf plot" error={error} />
     <div className="group-title">Data table</div>
-    <table className="chart-table" style={{ width: '100%', fontSize: 12 }}><thead><tr><th>Stem</th><th>Leaves (space-separated)</th><th /></tr></thead>
+    <table className="chart-table"><thead><tr><th>Stem</th><th>Leaves (space-separated)</th><th /></tr></thead>
       <tbody>{c.points.map((p, i) => <tr key={i} data-chart-row={i}>
         <td><Num label={`Row ${i + 1} stem`} value={p.x} onCommit={(n) => setRow(i, { x: n }, true)} /></td>
         <td><LeavesInput label={`Row ${i + 1} leaves`} leaves={p.leaves ?? []} onChange={(v) => setRow(i, { leaves: v }, true)} /></td>
