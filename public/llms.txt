@@ -1,0 +1,5 @@
+# Figure Studio
+> Static web app that builds Arabic/English math figures (geometry, axes, mechanics) and exports PNG/SVG/PDF. No backend.
+
+Control it from code with `window.nagwa` (start with `nagwa.help()` and `nagwa.describe()`); avoid clicking through the UI.
+Full notes and project rules: AGENTS.md in the repository root.

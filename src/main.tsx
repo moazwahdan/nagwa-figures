@@ -13,8 +13,10 @@ import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { appFontCss } from './core/fonts';
 import { installVerify } from './core/verifyHook';
+import { installAgentApi } from './core/agentApi';
 import './styles.css';
 if (import.meta.env.DEV) installVerify();
+installAgentApi();
 
 const style = document.createElement('style');
 style.textContent = appFontCss();

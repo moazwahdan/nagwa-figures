@@ -239,13 +239,13 @@ export function Sidebar() {
   const lineTiles = (
     <div className="grid">
       <Tooltip tip={TOOL_BY_ID.segment.tip}>
-        <button className={`tile ${tool==='segment'?'on':''}`} onClick={()=>startLineTool('segment')}>
+        <button data-tool="segment" className={`tile ${tool==='segment'?'on':''}`} onClick={()=>startLineTool('segment')}>
           <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden><path d="M4 18 L20 6"/></svg>
           <span>Line</span>
         </button>
       </Tooltip>
       <Tooltip tip={TOOL_BY_ID['draw-force'].tip}>
-        <button className={`tile ${tool==='draw-force'?'on':''}`} onClick={()=>startLineTool('draw-force')}>
+        <button data-tool="draw-force" className={`tile ${tool==='draw-force'?'on':''}`} onClick={()=>startLineTool('draw-force')}>
           <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
             <path d="M3 12h13"/>
             <path d="M13 7l7 5-7 5z" fill="currentColor" stroke="none"/>
@@ -254,19 +254,19 @@ export function Sidebar() {
         </button>
       </Tooltip>
       <Tooltip tip={TOOL_BY_ID['draw-arc'].tip}>
-        <button className={`tile ${tool==='draw-arc'?'on':''}`} onClick={()=>startLineTool('draw-arc')}>
+        <button data-tool="draw-arc" className={`tile ${tool==='draw-arc'?'on':''}`} onClick={()=>startLineTool('draw-arc')}>
           <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden><path d="M5 18 A10 10 0 0 1 19 8"/></svg>
           <span>Circular line</span>
         </button>
       </Tooltip>
       <Tooltip tip={TOOL_BY_ID.polyline.tip}>
-        <button className={`tile ${tool==='polyline'?'on':''}`} onClick={()=>startLineTool('polyline')}>
+        <button data-tool="polyline" className={`tile ${tool==='polyline'?'on':''}`} onClick={()=>startLineTool('polyline')}>
           <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden><path d="M4 18 L9 8 L15 14 L20 6"/></svg>
           <span>Free poly line (straight)</span>
         </button>
       </Tooltip>
       <Tooltip tip={TOOL_BY_ID['polyline-curve'].tip}>
-        <button className={`tile ${tool==='polyline-curve'?'on':''}`} onClick={()=>startLineTool('polyline-curve')}>
+        <button data-tool="polyline-curve" className={`tile ${tool==='polyline-curve'?'on':''}`} onClick={()=>startLineTool('polyline-curve')}>
           <svg width={30} height={30} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden><path d="M4 18 C8 8, 12 16, 20 6"/></svg>
           <span>Free poly line (curved)</span>
         </button>
@@ -337,7 +337,7 @@ export function Sidebar() {
             <Tooltip tip="Mix any categories in one drawing.">
               <div className="shape-families" aria-label="Shape families">{SHAPE_FAMILIES.map(g=><button key={g} className={`shape-family ${g===shapeFamily?'on':''}`} aria-pressed={g===shapeFamily} onClick={()=>setShapeFamily(g)}>{g}<span>{g==='Lines'?SHAPE_LINE_TOOLS.length:SHAPE_DEFS.filter(d=>d.group===g&&!d.hidden).length}</span></button>)}</div>
             </Tooltip>
-            {shapeFamily==='Lines'?lineTiles:shapeFamily==='Mechanics'?<div className="grid">{SHAPE_DEFS.filter(d=>d.group==='Mechanics'&&!d.hidden).map(d=><Tooltip key={d.id} tip={d.tip}><button className="tile" onClick={()=>d.id==='mech-planes'?setPlanesOpen(true):addShape(d.id)}><ShapeIcon defId={d.id}/><span>{d.label}</span></button></Tooltip>)}</div>:<div className="grid">{SHAPE_DEFS.filter(d=>d.group===shapeFamily&&!d.hidden).map(d=><Tooltip key={d.id} tip={d.tip}><button className="tile" onClick={()=>addShape(d.id)}><ShapeIcon defId={d.id}/><span>{d.label}</span></button></Tooltip>)}</div>}
+            {shapeFamily==='Lines'?lineTiles:shapeFamily==='Mechanics'?<div className="grid">{SHAPE_DEFS.filter(d=>d.group==='Mechanics'&&!d.hidden).map(d=><Tooltip key={d.id} tip={d.tip}><button data-shape={d.id} aria-label={d.label} className="tile" onClick={()=>d.id==='mech-planes'?setPlanesOpen(true):addShape(d.id)}><ShapeIcon defId={d.id}/><span>{d.label}</span></button></Tooltip>)}</div>:<div className="grid">{SHAPE_DEFS.filter(d=>d.group===shapeFamily&&!d.hidden).map(d=><Tooltip key={d.id} tip={d.tip}><button data-shape={d.id} aria-label={d.label} className="tile" onClick={()=>addShape(d.id)}><ShapeIcon defId={d.id}/><span>{d.label}</span></button></Tooltip>)}</div>}
             <Section title="Texts" count={captionCount} open={false} tip="Free notes on the figure. Arabic and English are written separately. Math in $...$ like $\frac{\text{Area}}{5}$. Looped alif is \alef."><TextsPanel /></Section>
             {!customMode&&<Section title="Custom shapes" open={false} tip="Choose a saved figure to add an independent copy. Create and manage them in Custom shapes studio."><CustomShapePicker /></Section>}
           </>
@@ -356,7 +356,7 @@ export function Sidebar() {
                   <div className="grid">
                     {list.map((t) => (
                       <Tooltip key={t.id} tip={t.tip}>
-                        <button className={`tile tool ${tool === t.id ? 'on' : ''}`} onClick={() => setTool(tool === t.id ? null : t.id)}>
+                        <button data-tool={t.id} aria-label={t.label} aria-pressed={tool === t.id} className={`tile tool ${tool === t.id ? 'on' : ''}`} onClick={() => setTool(tool === t.id ? null : t.id)}>
                           <span>{t.label}</span>
                         </button>
                       </Tooltip>
