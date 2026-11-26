@@ -49,7 +49,7 @@ export function projectAxes(p:AxisCoord,settings:AxesSettings):Vec{const b=axisB
 export function axesBounds(params:Record<string,number>,settings:AxesSettings):Vec[]{
   /* 3D axes are three crossing lines, not a box: only the axis ends are drawn, so the far box corners would add empty space around the figure. */
   if(settings.dimension===3)return ranges(params,3).flatMap(r=>[projectAxes({x:0,y:0,z:0,[r.key]:r.min} as AxisCoord,settings),projectAxes({x:0,y:0,z:0,[r.key]:r.max} as AxisCoord,settings)]);
-  const points:Vec[]=[];for(const x of [params.xMin,params.xMax])for(const y of [params.yMin,params.yMax])for(const z of settings.dimension===3?[params.zMin,params.zMax]:[0])points.push(projectAxes({x,y,z},settings));return points;
+  const points:Vec[]=[];for(const x of [params.xMin,params.xMax])for(const y of [params.yMin,params.yMax])for(const z of (settings.dimension as number)===3?[params.zMin,params.zMax]:[0])points.push(projectAxes({x,y,z},settings));return points;
 }
 export const AXES_DEFS:ShapeDef[]=([2,3] as const).map(dimension=>({id:`axes-${dimension}d`,kind:'axes',group:'Axes',label:`${dimension}D axes`,tip:`Coordinate axes with points, lines, vectors${dimension===3?' and plane patches':''}.`,params:AXIS_KEYS.slice(0,dimension).flatMap(key=>[{key:key+'Min',label:key.toUpperCase()+' minimum',def:-5,min:-1000,max:1000},{key:key+'Max',label:key.toUpperCase()+' maximum',def:5,min:-1000,max:1000}]),build:params=>({points:axesBounds(params,defaultAxes(dimension))})}));
 const sub=(a:AxisCoord,b:AxisCoord):AxisCoord=>({x:a.x-b.x,y:a.y-b.y,z:a.z-b.z});

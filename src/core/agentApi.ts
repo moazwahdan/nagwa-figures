@@ -6,7 +6,8 @@ import { fitScene } from './world';
 import { buildSvg, figureFiles, svgToPng } from './exportImage';
 import { cropScene } from './crop';
 import { loadProjectText, projectText } from './project';
-import type { ConLine, ConMark, ConPoint, Lang, Ref, SceneData, Target } from './types';
+import type { ConLine, ConMark, ConPoint, Lang, Ref, SceneData } from './types';
+import type { Target } from './tools';
 
 /**
  * `window.nagwa` — a small, documented control surface for AI agents and scripts.
