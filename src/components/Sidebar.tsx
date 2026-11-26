@@ -15,7 +15,7 @@ import type { AnchorKey, ShapeInstance } from '../core/types';
 import { ShapeIcon } from './ShapeIcon';
 import { Tooltip } from './Tooltip';
 
-const SHAPE_FAMILIES = ['Triangles', 'Quadrilaterals', 'Polygons & circle', '3D solids', 'Axes', 'Charts', 'Lines', 'Mechanics'] as const;
+const SHAPE_FAMILIES = ['Triangles', 'Quadrilaterals', 'Polygons & circle', '3D solids', 'Axes', 'Statistics', 'Lines', 'Mechanics'] as const;
 
 function Section({ title, children, open: o = true, count, tip }: { title: string; children: React.ReactNode; open?: boolean; count?: number; tip?: string }) {
   const [open, setOpen] = useState(o);

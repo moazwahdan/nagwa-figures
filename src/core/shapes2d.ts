@@ -42,7 +42,7 @@ export interface Geometry {
 export interface ShapeDef {
   id: string;
   kind: ShapeKind;
-  group: 'Triangles' | 'Quadrilaterals' | 'Polygons & circle' | '3D solids' | 'Axes' | 'Charts' | 'Mechanics' | 'Texts';
+  group: 'Triangles' | 'Quadrilaterals' | 'Polygons & circle' | '3D solids' | 'Axes' | 'Statistics' | 'Mechanics' | 'Texts';
   hidden?: boolean;
   label: string;
   tip: string;

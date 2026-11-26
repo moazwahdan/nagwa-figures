@@ -286,10 +286,14 @@ export interface AxesTool {kind:'point'|'line'|'vector'|'plane';shape:string;pic
 
 export type AxisEquation = {id:string;kind:'line'|'vector';origin:AxisCoord;direction:AxisCoord;dashed:boolean} | {id:string;kind:'plane';normal:AxisCoord;constant:number};
 
-export type ChartKind = 'bar' | 'line' | 'dot';
+export type ChartKind = 'bar' | 'line' | 'dot' | 'pie' | 'stem';
 export interface ChartText { ar: string; en: string }
 /** One row of the chart's data table. Bar: label + y. Line: x + y. Dot plot: x + y (the number of dots). */
-export interface ChartPoint { x: number; y: number; label?: ChartText; color?: string; marker?: boolean }
+export interface ChartPoint {
+  x: number; y: number; label?: ChartText; color?: string; marker?: boolean;
+  /** Stem-and-leaf plot: `x` is the stem and these are its leaves, in the order they are drawn. */
+  leaves?: number[];
+}
 export interface ChartSettings {
   kind: ChartKind;
   title: ChartText;
@@ -325,4 +329,13 @@ export interface ChartSettings {
   color: string;
   lineConnect: boolean;
   markers: boolean;
+  /** Pie chart: show the value under each name. Omitted = shown. */
+  showValues?: boolean;
+  /** Pie chart: distance of the labels from the centre as a fraction of the radius. Omitted = 0.58. */
+  labelRadius?: number;
+  /** Pie chart: angle in degrees (counter-clockwise from east) where the first sector starts. Omitted = 0. */
+  startAngle?: number;
+  /** Stem-and-leaf plot: the boxed key, e.g. "Key: 1 | 6 = 16". `showKey` omitted = shown. */
+  keyText?: ChartText;
+  showKey?: boolean;
 }

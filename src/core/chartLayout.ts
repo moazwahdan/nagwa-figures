@@ -5,6 +5,7 @@ import { labelSize } from './labelSizing';
 import { ARROW_TO_STROKE, DOT_TO_STROKE } from './paper';
 import { formatNumber, toArabicDigits } from './labels';
 import { GRID_COLOR, INK_COLOR } from './palette';
+import { pieLayout, stemLayout } from './chartLayoutStat';
 
 export interface ChartTxt { key: string; pos: Vec; text: string; size: number; rot?: boolean; italic?: boolean }
 export interface ChartSeg { a: Vec; b: Vec }
@@ -16,6 +17,8 @@ export interface ChartLayout {
   bars: { pts: Vec[]; fill: string }[];
   line: Vec[] | null;
   lineColor: string;
+  /** Pie sectors (centre + arc points), filled. */
+  sectors: { pts: Vec[]; fill: string }[];
   dots: { c: Vec; r: number; color: string }[];
   texts: ChartTxt[];
   /** Every ink point except the glyph boxes. */
@@ -44,7 +47,7 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
   const o = P(0, 0), ex = norm({ x: P(1, 0).x - o.x, y: P(1, 0).y - o.y }), ey = norm({ x: P(0, 1).x - o.x, y: P(0, 1).y - o.y });
   const add = (a: Vec, d: Vec, k = 1): Vec => ({ x: a.x + d.x * k, y: a.y + d.y * k });
   const arrowLen = stroke * ARROW_TO_STROKE, ext = arrowLen + stroke * 3;
-  const out: ChartLayout = { grid: [], axes: [], ticks: [], heads: [], bars: [], line: null, lineColor: c.color, dots: [], texts: [], pts: [], stroke, arrowLen };
+  const out: ChartLayout = { grid: [], axes: [], ticks: [], heads: [], bars: [], line: null, lineColor: c.color, sectors: [], dots: [], texts: [], pts: [], stroke, arrowLen };
   const pt = (p: Vec) => { out.pts.push(p); return p; };
   const text = (key: string, pos: Vec, t: string, size: number, extra: Partial<ChartTxt> = {}) => {
     if (!t) return;
@@ -52,6 +55,8 @@ export function chartLayout(data: SceneData, s: ShapeInstance, lang: Lang): Char
     out.texts.push({ key, pos: { x: pos.x + (nd?.x ?? 0), y: pos.y + (nd?.y ?? 0) }, text: t, size, ...extra });
   };
   const pick = (t: { ar: string; en: string } | undefined) => (t ? (lang === 'ar' ? t.ar || t.en : t.en || t.ar) : '').trim();
+  if (c.kind === 'pie') return pieLayout(data, s, lang, out);
+  if (c.kind === 'stem') return stemLayout(data, s, lang, out);
   const tickSize = fs * 0.7;
   const dot = c.kind === 'dot', bar = c.kind === 'bar';
   const yAxis = !dot;

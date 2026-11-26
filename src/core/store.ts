@@ -262,7 +262,7 @@ export const useStore = create<Store>((set, get) => {
       const d = data();
       const fresh = placeOnTop(d.shapes, newShape(defId, params));
       if (!d.shapes.length) {
-        const chartCanvas = fresh.chart ? { bar: { w: 440, h: 360 }, line: { w: 420, h: 580 }, dot: { w: 540, h: 250 } }[fresh.chart.kind] : undefined;
+        const chartCanvas = fresh.chart ? { bar: { w: 440, h: 360 }, line: { w: 420, h: 580 }, dot: { w: 540, h: 250 }, pie: { w: 420, h: 380 }, stem: { w: 700, h: 380 } }[fresh.chart.kind] : undefined;
         const next = fitScene({ ...d, ...(chartCanvas ? { canvas: chartCanvas } : {}), shapes: [fresh] });
         set({ ...next, selectedId: fresh.id, tool: null, axesTool:null, picks: [], langView: null });
       } else set({ shapes: [...d.shapes, fresh], selectedId: fresh.id, tool: null, axesTool:null, picks: [], langView: null });

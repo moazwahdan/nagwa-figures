@@ -15,6 +15,7 @@ export function ChartSvg({ data, shape: s, lang, interactive, lockAll }: { data:
       {interactive && <rect data-shape-id={s.id} x={x0 - 10} y={y0 - 10} width={Math.max(...xs) - x0 + 20} height={Math.max(...ys) - y0 + 20} fill="transparent" pointerEvents="all" />}
       <g pointerEvents="none">
         {s.chart!.gridOverBars === false && L.grid.map((g, i) => seg(g, i, GRID_COLOR, stroke, { 'data-chart-grid': '' }))}
+        {L.sectors.map((sc, i) => <polygon key={'s' + i} data-chart-sector={i} points={sc.pts.map((p) => `${p.x},${p.y}`).join(' ')} fill={sc.fill} stroke={sc.fill} strokeWidth={0.6} strokeLinejoin="round" />)}
         {L.bars.map((b, i) => <polygon key={'b' + i} data-chart-bar={i} points={b.pts.map((p) => `${p.x},${p.y}`).join(' ')} fill={b.fill} />)}
         {s.chart!.gridOverBars !== false && L.grid.map((g, i) => seg(g, i, GRID_COLOR, stroke, { 'data-chart-grid': '' }))}
         {L.bars.map((b, i) => <polygon key={'o' + i} data-chart-bar-outline={i} points={b.pts.map((p) => `${p.x},${p.y}`).join(' ')} fill="none" stroke={INK_COLOR} strokeWidth={stroke} strokeLinejoin="miter" />)}

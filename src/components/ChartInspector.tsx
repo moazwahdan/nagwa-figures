@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { PALETTE } from '../core/palette';
+import { PIE_COLORS } from '../core/chartLayoutStat';
 import { validateChart } from '../core/charts';
 import { parseAxisNumber } from '../core/axisActions';
 import { useStore } from '../core/store';
@@ -24,6 +25,86 @@ function Bilingual({ label, value, onChange }: { label: string; value: ChartText
     <label className="field"><span>{label} (AR)</span><input aria-label={`${label} Arabic`} dir="rtl" value={value.ar} onChange={(e) => onChange({ ...value, ar: e.target.value })} /></label></div>;
 }
 
+
+type Ctx = { s: ShapeInstance; c: ChartSettings; error: string; apply: (n: ChartSettings, fit?: boolean, params?: Record<string, number>) => void; patch: (p: Partial<ChartSettings>, fit?: boolean) => void; setRow: (i: number, p: Partial<ChartPoint>, fit?: boolean) => void };
+
+function PanelHead({ s, title, error }: { s: ShapeInstance; title: string; error: string }) {
+  return <>
+    <div className="insp-title">{title}<span className="actions"><button className="icon-btn" aria-label="Duplicate chart" onClick={() => useStore.getState().duplicateShape(s.id)}>⧉</button><button className="icon-btn danger" aria-label="Delete chart" onClick={() => useStore.getState().removeShape(s.id)}>✕</button></span></div>
+    {error && <div className="warn" role="alert">{error}</div>}
+  </>;
+}
+
+function PanelFoot({ s }: { s: ShapeInstance }) {
+  return <>
+    <div className="group-title">Labels &amp; layout</div>
+    <label className="check"><input type="checkbox" checked={s.locked} onChange={() => useStore.getState().toggleShapeLock(s.id)} />Lock this chart's labels</label>
+    <div className="split2"><button className="btn ghost" onClick={() => useStore.getState().patchShape(s.id, { nudge: {}, nudgeByLang: undefined })}>Reset label positions</button></div>
+  </>;
+}
+
+/** Leaves typed as "0 3 6" (spaces or commas). The text stays as typed; the chart gets the parsed numbers. */
+function LeavesInput({ leaves, label, onChange }: { leaves: number[]; label: string; onChange: (v: number[]) => void }) {
+  const [t, setT] = useState(leaves.join(' '));
+  useEffect(() => { setT((cur) => (cur.split(/[\s,،]+/).filter(Boolean).join(' ') === leaves.join(' ') ? cur : leaves.join(' '))); }, [leaves]);
+  return <input aria-label={label} inputMode="numeric" value={t} onChange={(e) => {
+    setT(e.target.value);
+    const parts = e.target.value.split(/[\s,،]+/).filter(Boolean);
+    if (parts.every((x) => /^\d{1,3}$/.test(x))) onChange(parts.map(Number));
+  }} />;
+}
+
+function PieInspector({ s, c, error, apply, patch, setRow }: Ctx) {
+  return <div className="panel chart-panel" data-chart-inspector="pie">
+    <PanelHead s={s} title="Pie chart" error={error} />
+    <div className="group-title">Data table</div>
+    <table className="chart-table" style={{ width: '100%', fontSize: 12 }}><thead><tr><th>EN</th><th>AR</th><th>Value</th><th>Colour</th><th /></tr></thead>
+      <tbody>{c.points.map((p, i) => <tr key={i} data-chart-row={i}>
+        <td><input aria-label={`Row ${i + 1} English`} value={p.label?.en ?? ''} onChange={(e) => setRow(i, { label: { ar: p.label?.ar ?? '', en: e.target.value } })} /></td>
+        <td><input aria-label={`Row ${i + 1} Arabic`} dir="rtl" value={p.label?.ar ?? ''} onChange={(e) => setRow(i, { label: { en: p.label?.en ?? '', ar: e.target.value } })} /></td>
+        <td><Num label={`Row ${i + 1} value`} value={p.y} onCommit={(n) => { if (n >= 0) setRow(i, { y: n }); }} /></td>
+        <td><select aria-label={`Row ${i + 1} colour`} value={p.color ?? ''} onChange={(e) => setRow(i, { color: e.target.value || undefined })} style={{ background: p.color ?? 'transparent' }}>
+          <option value="">Default</option>{PIE_COLORS.map((hex, k) => <option key={hex} value={hex}>{`Pastel ${k + 1}`}</option>)}{PALETTE.map((col) => <option key={col.hex} value={col.hex}>{col.name}</option>)}</select></td>
+        <td><button className="icon-btn danger" aria-label={`Delete row ${i + 1}`} onClick={() => apply({ ...c, points: c.points.filter((_, j) => j !== i) }, true)}>✕</button></td>
+      </tr>)}</tbody></table>
+    <button className="btn ghost wide" onClick={() => apply({ ...c, points: [...c.points, { x: 0, y: 10, label: { en: '', ar: '' } }] }, true)}>+ Add row</button>
+    <div className="group-title">Title</div>
+    <Bilingual label="Title" value={c.title} onChange={(t) => patch({ title: t })} />
+    <div className="group-title">Pie</div>
+    <label className="check"><input type="checkbox" checked={c.showValues !== false} onChange={(e) => patch({ showValues: e.target.checked }, true)} />Show the value under each name</label>
+    <label className="check"><input type="checkbox" checked={c.frame} onChange={(e) => patch({ frame: e.target.checked }, true)} />Outline around the pie</label>
+    <label className="slider"><span>Label distance from the centre <b>{Math.round((c.labelRadius ?? 0.58) * 100)}%</b></span><input aria-label="Label distance" type="range" min="20" max="120" step="2" value={Math.round((c.labelRadius ?? 0.58) * 100)} onChange={(e) => patch({ labelRadius: Number(e.target.value) / 100 }, true)} /></label>
+    <div className="fields"><label className="field"><span>Start angle (°)</span><Num label="Start angle" value={c.startAngle ?? 0} onCommit={(n) => { if (Math.abs(n) <= 720) patch({ startAngle: n }, true); }} /></label>
+      <label className="field"><span>Diameter</span><Num label="Diameter" value={s.params.w} onCommit={(n) => { if (n >= 1 && n <= 40) apply(c, true, { ...s.params, w: n, h: n }); }} /></label></div>
+    <PanelFoot s={s} />
+  </div>;
+}
+
+function StemInspector({ s, c, error, apply, patch, setRow }: Ctx) {
+  return <div className="panel chart-panel" data-chart-inspector="stem">
+    <PanelHead s={s} title="Stem-and-leaf plot" error={error} />
+    <div className="group-title">Data table</div>
+    <table className="chart-table" style={{ width: '100%', fontSize: 12 }}><thead><tr><th>Stem</th><th>Leaves (space-separated)</th><th /></tr></thead>
+      <tbody>{c.points.map((p, i) => <tr key={i} data-chart-row={i}>
+        <td><Num label={`Row ${i + 1} stem`} value={p.x} onCommit={(n) => setRow(i, { x: n }, true)} /></td>
+        <td><LeavesInput label={`Row ${i + 1} leaves`} leaves={p.leaves ?? []} onChange={(v) => setRow(i, { leaves: v }, true)} /></td>
+        <td><button className="icon-btn danger" aria-label={`Delete row ${i + 1}`} onClick={() => apply({ ...c, points: c.points.filter((_, j) => j !== i) }, true)}>✕</button></td>
+      </tr>)}</tbody></table>
+    <button className="btn ghost wide" onClick={() => apply({ ...c, points: [...c.points, { x: (c.points[c.points.length - 1]?.x ?? 0) + 1, y: 0, leaves: [] }] }, true)}>+ Add row</button>
+    <div className="group-title">Headings</div>
+    <Bilingual label="Stem heading" value={c.xTitle} onChange={(t) => patch({ xTitle: t }, true)} />
+    <Bilingual label="Leaf heading" value={c.yTitle} onChange={(t) => patch({ yTitle: t }, true)} />
+    <Bilingual label="Title" value={c.title} onChange={(t) => patch({ title: t }, true)} />
+    <div className="group-title">Key</div>
+    <label className="check"><input type="checkbox" checked={c.showKey !== false} onChange={(e) => patch({ showKey: e.target.checked }, true)} />Show the boxed key</label>
+    {c.showKey !== false && <Bilingual label="Key" value={c.keyText ?? { en: '', ar: '' }} onChange={(t) => patch({ keyText: t }, true)} />}
+    <div className="group-title">Size</div>
+    <div className="fields"><label className="field"><span>Column width</span><Num label="Column width" value={s.params.w} onCommit={(n) => { if (n >= 0.2 && n <= 40) apply(c, true, { ...s.params, w: n }); }} /></label>
+      <label className="field"><span>Row height</span><Num label="Row height" value={s.params.h} onCommit={(n) => { if (n >= 0.2 && n <= 40) apply(c, true, { ...s.params, h: n }); }} /></label></div>
+    <PanelFoot s={s} />
+  </div>;
+}
+
 export function ChartInspector({ s }: { s: ShapeInstance }) {
   const c = s.chart!, [error, setError] = useState('');
   const apply = (next: ChartSettings, fit = false, params?: Record<string, number>) => {
@@ -37,6 +118,9 @@ export function ChartInspector({ s }: { s: ShapeInstance }) {
     const row: ChartPoint = c.kind === 'bar' ? { x: c.points.length + 1, y: 1, label: { en: '', ar: '' } } : { x: (last?.x ?? -1) + 1, y: c.kind === 'dot' ? 1 : last?.y ?? 0 };
     apply({ ...c, points: [...c.points, row] }, true);
   };
+  const ctx: Ctx = { s, c, error, apply, patch, setRow };
+  if (c.kind === 'pie') return <PieInspector {...ctx} />;
+  if (c.kind === 'stem') return <StemInspector {...ctx} />;
   const bar = c.kind === 'bar', line = c.kind === 'line', dot = c.kind === 'dot';
   const title = { bar: 'Bar chart', line: 'Line graph', dot: 'Dot plot' }[c.kind];
   return <div className="panel chart-panel" data-chart-inspector={c.kind}>
